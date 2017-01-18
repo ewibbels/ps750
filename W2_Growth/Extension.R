@@ -82,3 +82,60 @@ final2=merge(data,data_ext2, by=c("year"), all.x=T)
 summary(final2)
 
 write.csv(final2,"final2.csv")
+
+
+
+################################
+### EXTENSION TABLE 3
+################################
+
+data2=read.csv("final2.csv")
+
+data2$urbrate=as.numeric(data2$urbrate)
+
+################################
+### FIRST REGRESSION EXTENSION 1
+################################
+
+lm6ext1=lm(urbrate ~ nrx_previous + mfg_previous + mfgserv_gdp2010t + food_price + factor(year) + factor(country), weights=pop, data=data2)
+summary(lm6ext1)
+
+lm6ext1.vcovCL=cluster.vcov(lm6ext1, data2$country)
+coeftest(lm6ext1, lm6ext1.vcovCL)
+coeftest(lm6ext1, vcov=vcovHC(lm6ext1,type="HC0",cluster="country"))
+
+
+################################
+### SECOND REGRESSION EXTENSION 1
+################################
+
+lm7ext1=lm(urbrate ~ nrx_previous + mfg_previous + mfgserv_gdp2010t + food_price + factor(year) + factor(year)*factor(continent) + factor(country), weights=pop, data=data2)
+summary(lm7ext1)
+
+lm7ext1.vcovCL=cluster.vcov(lm7ext1, data2$country)
+coeftest(lm7ext1, lm7ext1.vcovCL)
+coeftest(lm7ext1, vcov=vcovHC(lm7ext1,type="HC0",cluster="country"))
+
+
+################################
+### FIRST REGRESSION EXTENSION 2
+################################
+
+lm6ext2=lm(urbrate ~ nrx_previous + mfg_previous + mfgserv_gdp2010t + grain_price + factor(year) + factor(country), weights=pop, data=data2)
+summary(lm6ext2)
+
+lm6ext2.vcovCL=cluster.vcov(lm6ext2, data2$country)
+coeftest(lm6ext2, lm6ext2.vcovCL)
+coeftest(lm6ext2, vcov=vcovHC(lm6ext2,type="HC0",cluster="country"))
+
+
+################################
+### SECOND REGRESSION EXTENSION 2
+################################
+
+lm7ext2=lm(urbrate ~ nrx_previous + mfg_previous + mfgserv_gdp2010t + grain_price + factor(year) + factor(year)*factor(continent) + factor(country), weights=pop, data=data2)
+summary(lm7ext2)
+
+lm7ext2.vcovCL=cluster.vcov(lm7ext2, data2$country)
+coeftest(lm7ext2, lm7ext2.vcovCL)
+coeftest(lm7ext2, vcov=vcovHC(lm7ext2,type="HC0",cluster="country"))
