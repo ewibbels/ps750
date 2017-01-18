@@ -334,6 +334,105 @@ xi: reg expatistan mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.continent pri
 xi: reg expatistan mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.region primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
 *Estimates effect of natural resource exports and manufactures and services as percentage of GDP on expat price index in the largest city
 
+
+
 ************************
 *** REPLICATION OF TABLE 8
 ************************
+*Similar setup as table 5, only now the DV is composition of urban employment
+*Errors are robust SE and population weighted
+*Panel A runs area FEs
+*Panel B runs the same model as Table 5 Regression 6 with region FEs
+*Panel C controls for mean income 1960-2010 and the urbanization rate in 2010
+use gjv, clear
+
+*Regression (1)
+xi: reg urbanp1 mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.continent primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+outreg2 nrx2_mean mfgserv_gdp2010 lpcgdp_mean urbrate using table_8.xls, se nocons coefastr bdec(2) adjr2 noni nolabel bracket title(Effect, "") nonotes addnote("", Robust standard errors clustered at the district level in parentheses, * significant at 10%; ** significant at 5%; *** significant at 1%) replace
+test mfgserv-nrx = 0
+
+xi: reg urbanp1 mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.region primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+outreg2 nrx2_mean mfgserv_gdp2010 lpcgdp_mean urbrate using table_8.xls, se nocons coefastr bdec(2) adjr2 noni nolabel bracket title(Effect, "") nonotes addnote("", Robust standard errors clustered at the district level in parentheses, * significant at 10%; ** significant at 5%; *** significant at 1%) append
+test mfgserv-nrx = 0
+
+xi: reg urbanp1 mfgserv_gdp2010 nrx2_mean i.region primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+outreg2 nrx2_mean mfgserv_gdp2010 lpcgdp_mean urbrate using table_8.xls, se nocons coefastr bdec(2) adjr2 noni nolabel bracket title(Effect, "") nonotes addnote("", Robust standard errors clustered at the district level in parentheses, * significant at 10%; ** significant at 5%; *** significant at 1%) append
+*DV is urban poverty headcount ratio
+
+*Regression (2)
+xi: reg urbanp2 mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.continent primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+outreg2 nrx2_mean mfgserv_gdp2010 lpcgdp_mean urbrate using table_8.xls, se nocons coefastr bdec(2) adjr2 noni nolabel bracket title(Effect, "") nonotes addnote("", Robust standard errors clustered at the district level in parentheses, * significant at 10%; ** significant at 5%; *** significant at 1%) append
+test mfgserv-nrx = 0
+
+xi: reg urbanp2 mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.region primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+outreg2 nrx2_mean mfgserv_gdp2010 lpcgdp_mean urbrate using table_8.xls, se nocons coefastr bdec(2) adjr2 noni nolabel bracket title(Effect, "") nonotes addnote("", Robust standard errors clustered at the district level in parentheses, * significant at 10%; ** significant at 5%; *** significant at 1%) append
+test mfgserv-nrx = 0
+
+xi: reg urbanp2 mfgserv_gdp2010 nrx2_mean i.region primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+outreg2 nrx2_mean mfgserv_gdp2010 lpcgdp_mean urbrate using table_8.xls, se nocons coefastr bdec(2) adjr2 noni nolabel bracket title(Effect, "") nonotes addnote("", Robust standard errors clustered at the district level in parentheses, * significant at 10%; ** significant at 5%; *** significant at 1%) append
+*DV is % urban poverty gap 
+
+*Regression (3)
+xi: reg slum mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.continent primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+outreg2 nrx2_mean mfgserv_gdp2010 lpcgdp_mean urbrate using table_8.xls, se nocons coefastr bdec(2) adjr2 noni nolabel bracket title(Effect, "") nonotes addnote("", Robust standard errors clustered at the district level in parentheses, * significant at 10%; ** significant at 5%; *** significant at 1%) append
+test mfgserv-nrx = 0
+
+xi: reg slum mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.region primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+outreg2 nrx2_mean mfgserv_gdp2010 lpcgdp_mean urbrate using table_8.xls, se nocons coefastr bdec(2) adjr2 noni nolabel bracket title(Effect, "") nonotes addnote("", Robust standard errors clustered at the district level in parentheses, * significant at 10%; ** significant at 5%; *** significant at 1%) append
+test mfgserv-nrx = 0
+
+xi: reg slum mfgserv_gdp2010 nrx2_mean i.region primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+outreg2 nrx2_mean mfgserv_gdp2010 lpcgdp_mean urbrate using table_8.xls, se nocons coefastr bdec(2) adjr2 noni nolabel bracket title(Effect, "") nonotes addnote("", Robust standard errors clustered at the district level in parentheses, * significant at 10%; ** significant at 5%; *** significant at 1%) append
+*DV is % slum share
+
+*Regression (4)
+xi: reg urban_water mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.continent primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+outreg2 nrx2_mean mfgserv_gdp2010 lpcgdp_mean urbrate using table_8.xls, se nocons coefastr bdec(2) adjr2 noni nolabel bracket title(Effect, "") nonotes addnote("", Robust standard errors clustered at the district level in parentheses, * significant at 10%; ** significant at 5%; *** significant at 1%) append
+test mfgserv-nrx = 0
+
+xi: reg urban_water mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.region primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+outreg2 nrx2_mean mfgserv_gdp2010 lpcgdp_mean urbrate using table_8.xls, se nocons coefastr bdec(2) adjr2 noni nolabel bracket title(Effect, "") nonotes addnote("", Robust standard errors clustered at the district level in parentheses, * significant at 10%; ** significant at 5%; *** significant at 1%) append
+test mfgserv-nrx = 0
+
+xi: reg urban_water mfgserv_gdp2010 nrx2_mean i.region primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+outreg2 nrx2_mean mfgserv_gdp2010 lpcgdp_mean urbrate using table_8.xls, se nocons coefastr bdec(2) adjr2 noni nolabel bracket title(Effect, "") nonotes addnote("", Robust standard errors clustered at the district level in parentheses, * significant at 10%; ** significant at 5%; *** significant at 1%) append
+*DV is % of urban population with improved water source
+
+*Regression (5)
+xi: reg urban_sani mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.continent primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+outreg2 nrx2_mean mfgserv_gdp2010 lpcgdp_mean urbrate using table_8.xls, se nocons coefastr bdec(2) adjr2 noni nolabel bracket title(Effect, "") nonotes addnote("", Robust standard errors clustered at the district level in parentheses, * significant at 10%; ** significant at 5%; *** significant at 1%) append
+test mfgserv-nrx = 0
+
+xi: reg urban_sani mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.region primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+outreg2 nrx2_mean mfgserv_gdp2010 lpcgdp_mean urbrate using table_8.xls, se nocons coefastr bdec(2) adjr2 noni nolabel bracket title(Effect, "") nonotes addnote("", Robust standard errors clustered at the district level in parentheses, * significant at 10%; ** significant at 5%; *** significant at 1%) append
+test mfgserv-nrx = 0
+
+xi: reg urban_sani mfgserv_gdp2010 nrx2_mean i.region primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+outreg2 nrx2_mean mfgserv_gdp2010 lpcgdp_mean urbrate using table_8.xls, se nocons coefastr bdec(2) adjr2 noni nolabel bracket title(Effect, "") nonotes addnote("", Robust standard errors clustered at the district level in parentheses, * significant at 10%; ** significant at 5%; *** significant at 1%) append
+*DV is % of urban population with improved sanitation facilities
+
+*Regression (6)
+xi: reg sufficien mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.continent primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+outreg2 nrx2_mean mfgserv_gdp2010 lpcgdp_mean urbrate using table_8.xls, se nocons coefastr bdec(2) adjr2 noni nolabel bracket title(Effect, "") nonotes addnote("", Robust standard errors clustered at the district level in parentheses, * significant at 10%; ** significant at 5%; *** significant at 1%) append
+test mfgserv-nrx = 0
+
+xi: reg sufficien mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.region primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+outreg2 nrx2_mean mfgserv_gdp2010 lpcgdp_mean urbrate using table_8.xls, se nocons coefastr bdec(2) adjr2 noni nolabel bracket title(Effect, "") nonotes addnote("", Robust standard errors clustered at the district level in parentheses, * significant at 10%; ** significant at 5%; *** significant at 1%) append
+test mfgserv-nrx = 0
+
+xi: reg sufficien mfgserv_gdp2010 nrx2_mean i.region primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+outreg2 nrx2_mean mfgserv_gdp2010 lpcgdp_mean urbrate using table_8.xls, se nocons coefastr bdec(2) adjr2 noni nolabel bracket title(Effect, "") nonotes addnote("", Robust standard errors clustered at the district level in parentheses, * significant at 10%; ** significant at 5%; *** significant at 1%) append
+*DV is % of urban population with sufficient living area
+
+*Regression (7)
+xi: reg nonufuels mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.continent primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+outreg2 nrx2_mean mfgserv_gdp2010 lpcgdp_mean urbrate using table_8.xls, se nocons coefastr bdec(2) adjr2 noni nolabel bracket title(Effect, "") nonotes addnote("", Robust standard errors clustered at the district level in parentheses, * significant at 10%; ** significant at 5%; *** significant at 1%) append
+test mfgserv-nrx = 0
+
+xi: reg nonufuels mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.region primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+outreg2 nrx2_mean mfgserv_gdp2010 lpcgdp_mean urbrate using table_8.xls, se nocons coefastr bdec(2) adjr2 noni nolabel bracket title(Effect, "") nonotes addnote("", Robust standard errors clustered at the district level in parentheses, * significant at 10%; ** significant at 5%; *** significant at 1%) append
+test mfgserv-nrx = 0
+
+xi: reg nonufuels mfgserv_gdp2010 nrx2_mean i.region primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+outreg2 nrx2_mean mfgserv_gdp2010 lpcgdp_mean urbrate using table_8.xls, se nocons coefastr bdec(2) adjr2 noni nolabel bracket title(Effect, "") nonotes addnote("", Robust standard errors clustered at the district level in parentheses, * significant at 10%; ** significant at 5%; *** significant at 1%) append
+*DV is % of urban population  with non-solid fuels as energy
