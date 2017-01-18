@@ -50,6 +50,8 @@ xi: reg urbrate mfgserv_gdp2010 nrx2_mean i.region nrx1960 urbrate1960 primacy20
 *** REPLICATION OF TABLE 2
 ************************
 *To further test for robustness, the authors add more control variables. The results are robust to most but not all of these controls.  
+use gjv, clear
+
 *Panel A
 
 *Regression (1)
@@ -117,6 +119,7 @@ xi: reg urbrate mfgserv_gdp2010 nrx2oilgas nrx2diam nrx2goldcopp nrx2otm nrx2coc
 ************************
 *Panel analysis of the data with six periods (1960, 1970, 1980, 1990, 2000, 2010); estimate relationship between resource exports in the last period with urbanization (urbanization rate for that period) in the subsequent period
 *All regressions have country and year FEs, SEs clustered at country level, still uses population weights
+use gjv, clear
 
 drop if country == "Bahamas" | country == "China, Macao SAR" | country == "Eritrea" | country == "Somalia"
 *Countries dropped for missingness
@@ -147,7 +150,8 @@ xi: areg urbrate nrx_previous mfg_previous mfgserv_gdp2010t i.year i.continent*i
 *** REPLICATION OF TABLE 4
 ************************
 *Further investigation of causality using same panel structure as used in Table 3 
- 
+use gjv, clear
+
 drop if country == "Bahamas" | country == "China, Macao SAR" | country == "Eritrea" | country == "Somalia"
 *Countries dropped for missingness
 
@@ -180,5 +184,156 @@ xi: ivreg2 urbrate (nrx_previous = discov_post comm_p) mfg_previous mfgserv_gdp2
 ************************
 *** REPLICATION OF TABLE 5
 ************************
+*Looking at the consequences of resource-led urbanization using cross-sectional data, controls same as in table 1
+use gjv, clear
+
+*Regression (1)
+xi: reg lpcgdp_mean mfgserv_gdp2010 nrx2_mean i.region primacy2010 i.continent i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+*Estimates effect of natural resource exports (nrx2_mean) on mean log gdp/capita (lpcgdp_mean) holding constant the level of manufactures and services  (mfgserv_gdp2010)
+
+*Regression (2)
+xi: reg urbrate mfgserv_gdp2010 nrx2_mean i.region primacy2010 i.continent i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+*Looks at the effect of resource exports on urbanization rate
+
+*Regression (3)
+xi: reg urbrate lpcgdp_mean mfgserv_gdp2010 nrx2_mean i.region primacy2010 i.continent i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+*Adds income as control variale to regression 2
+
+*Regression (4)
+ xi: reg food00s_2 mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.region primacy2010 i.continent i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+*Estimate effect of resource exports (nrx2_mean) on food imports (food00s_2), controlling for urbanization and income per capita with area and region FEs
+
+*Regression (5)
+xi: reg mfg00s_2 mfgserv_gdp2010 nrx2_mean urbrate primacy2010 lpcgdp_mean i.continent i.region i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+*Estimate effect of resource exports on manufactures imports (mfg00s_2), controlling for urbanization and income per capita with area and region FEs
+
+*Regression (6)
+xi: reg servm00s mfgserv_gdp2010 nrx2_mean urbrate primacy2010 lpcgdp_mean i.continent i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+*Estimate effect of resource exports on service imports (servm00s)
 
 
+
+************************
+*** REPLICATION OF TABLE 6
+************************
+*Similar setup as table 5, only now the DV is composition of urban employment, Panel A includes area FE and Panel B includes region FE 
+*Errors are robust SE and population weighted
+use gjv, clear
+
+*Column (1)
+*Panel A
+xi: reg manfire_u mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.continent primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+
+*Panel B
+xi: reg manfire_u mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.region i.continent primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+*Estimates effect of natural resource exports on employment share of manufactures and FIRE sectors
+
+*Column (2)
+*Panel A
+xi: reg wrtupsutscu mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.continent primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+
+*Panel B
+xi: reg wrtupsutscu mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.region i.continent primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+*Estimates effect of natural resource exports and manufactures and services as percentage of GDP on employment share of commerce and personal services
+
+*Column (3)
+*Panel A
+xi: reg gsu mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.continent primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+
+*Panel B
+xi: reg gsu mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.region primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+*Estimates effect of natural resource exports and manufactures and services as percentage of GDP on employment share of government services
+
+*Column (4)
+*Panel A
+xi: reg manfire_c mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.continent primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+
+*Panel B
+xi: reg manfire_c mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.region i.continent primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+*Estimates effect of natural resource exports and manufactures and services as percentage of GDP on employment share of manufactures and FIRE sectors, in the largest city 
+
+keep if year == 2010
+
+*Column (5)
+*Panel A
+xi: reg lmfg_prod mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.continent primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+
+*Panel B
+xi: reg lmfg_prod mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.region primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+*Estimates effect of natural resource exports and manufactures and services as percentage of GDP on labor producitivity in manufacturing (lmfg_prod) 
+
+*Column (6)
+*Panel A
+xi: reg lserv_prod mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.continent primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+
+*Panel B
+xi: reg lserv_prod mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.region primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+*Estimates effect of natural resource exports and manufactures and services as percentage of GDP on labor producitivity in services(lmfg_serv) 
+
+
+
+************************
+*** REPLICATION OF TABLE 7
+************************
+*Similar setup as table 6, Panel A includes area FE and Panel B includes region FE; estimates marginal  effects of resource exports and manufacturing/services on city outcomes 
+use gjv, clear
+
+*Column (1)
+*Panel A
+xi: reg gini mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.continent primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+
+*Panel B
+xi: reg gini mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.region primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+*Estimates effect of natural resource exports and manufactures and services as percentage of GDP on total GINI
+
+*Column (2)
+*Panel A
+xi: reg ugini mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.continent primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+
+*Panel B
+xi: reg ugini mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.region primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+*Estimates effect of natural resource exports and manufactures and services as percentage of GDP on urban GINI
+
+*Column (3)
+*Panel A
+xi: reg primacy2010 urbrate lpcgdp_mean mfgserv_gdp2010 nrx2_mean i.continent primacy1960 i.continent i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+
+*Panel B
+xi: reg primacy2010 urbrate lpcgdp_mean mfgserv_gdp2010 nrx2_mean i.region primacy1960 i.continent i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+*Estimates effect of natural resource exports and manufactures and services as percentage of GDP on urban primacy rate based on the largest city (ratio of largest to second largest city)
+
+*Column (4)
+*Panel A
+xi: reg primfive urbrate lpcgdp_mean mfgserv_gdp2010 nrx2_mean i.continent primacy1960 i.continent i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+
+*Panel B
+xi: reg primfive urbrate lpcgdp_mean mfgserv_gdp2010 nrx2_mean i.region primacy1960 i.continent i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+*Estimates effect of natural resource exports and manufactures and services as percentage of GDP on primacy based on the five largest cities
+
+*Column (5)
+*Panel A
+xi: reg yrs_educ mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.continent primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+
+*Panel B
+xi: reg yrs_educ mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.region i.continent primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010 & ccode != "QAT", robust
+*Estimates effect of natural resource exports and manufactures and services as percentage of GDP on years of education
+
+*Column (6)
+*Panel A
+xi: reg returns_immi mfgserv_gdp2010 nrx2_mean urbrate n_immig lpcgdp_mean i.continent primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+
+*Panel B
+xi: reg returns_immi mfgserv_gdp2010 nrx2_mean urbrate n_immig lpcgdp_mean i.region primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+*Estimates effect of natural resource exports and manufactures and services as percentage of GDP on returns to education
+
+*Column (7)
+*Panel A
+xi: reg expatistan mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.continent primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+
+*Panel B
+xi: reg expatistan mfgserv_gdp2010 nrx2_mean urbrate lpcgdp_mean i.region primacy2010 i.type i.threshold|threshold_level smallisland area r2density popgrowthrate pop auto conflict landlocked drought [pw=pop] if year == 2010, robust
+*Estimates effect of natural resource exports and manufactures and services as percentage of GDP on expat price index in the largest city
+
+************************
+*** REPLICATION OF TABLE 8
+************************
