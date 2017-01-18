@@ -116,11 +116,29 @@ xi: reg urbrate mfgserv_gdp2010 nrx2oilgas nrx2diam nrx2goldcopp nrx2otm nrx2coc
 *** REPLICATION OF TABLE 3
 ************************
 *Panel analysis of the data with six periods (1960, 1970, 1980, 1990, 2000, 2010); estimate relationship between resource exports in the last period with urbanization (urbanization rate for that period) in the subsequent period
-*All regressions have country and year FEs 
+*All regressions have country and year FEs, SEs clustered at country level, still uses population weights
 
 drop if country == "Bahamas" | country == "China, Macao SAR" | country == "Eritrea" | country == "Somalia"
 *Countries dropped for missingness
 
 *Regression (1)
+xi: areg urbrate nrx_previous mfg_previous mfgserv_gdp2010t i.year [pw=pop] if (year == 1970 | year == 1980 | year == 1990 | year == 2000 | year == 2010), robust absorb(country) cluster(country)
+*Urbanization rate regressed on natural resource exports of the previous period, manufactures and services in 2010 interacted with time trend, manufacturing exports of the previous period as percentage of GDP, with country and year FEs
+ 
+*Regression (2)
+xi: areg urbrate nrx_previous mfg_previous mfgserv_gdp2010t i.year i.continent*i.year [pw=pop] if (year == 1970 | year == 1980 | year == 1990 | year == 2000 | year == 2010), robust absorb(country) cluster(country)
+*Includes area-year FEs (i.continent*i.year)
+
+*Regression (3)
+xi: areg urbrate nrx_previous mfg_previous mfgserv_gdp2010t i.year i.continent*i.year primacy_prev auto_prev drought_prev r2density_prev popgrowthrate_prev conflict_prev pop [pw=pop] if (year == 1970 | year == 1980 | year == 1990 | year == 2000 | year == 2010), robust absorb(country) cluster(country)
+*Includes time-varying controls which are primacy in previous period (primacy_prev), dummy that is 1 when previous period was "mostly autocratic" (auto_prev), number of droughts per square km between the last period and the current period (drought_prev), "rural push factors" that include rural population density per arable land in 1000s (r2density_prev), population growth for previous period (popgrowth_prev), dummy variable that equals 1 if country has  experienced conflict since prevoius period (conflict_prev)
+
+*Regression (4)
+xi: areg urbrate nrx_previous mfg_previous mfgserv_gdp2010t i.year i.continent*i.year primacy_prev nrx1960t urbrate1960t auto_prev drought_prev r2density_prev pop popgrowthrate_prev conflict_prev [pw=pop] if (year == 1970 | year == 1980 | year == 1990 | year == 2000 | year == 2010), robust absorb(country) cluster(country)
+*Controls for initial conditions which are natural resource exports in 1960 and urbanization rate in 1960, each interacted with the time trend to allow the effect to vary between periods
+
+*Regression (5)
+xi: areg urbrate nrx_previous mfg_previous mfgserv_gdp2010t i.year i.continent*i.year primacy_prev i.year*i.region nrx1960t urbrate1960t auto_prev drought_prev pop r2density_prev popgrowthrate_prev conflict_prev [pw=pop] if (year == 1970 | year == 1980 | year == 1990 | year == 2000 | year == 2010), robust absorb(country) cluster(country)
+*Adds region FEs interacted with year FEs which controls for time-variant trends within the region; regions finer than areas used in regression 2
 
  
