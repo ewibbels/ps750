@@ -141,4 +141,44 @@ xi: areg urbrate nrx_previous mfg_previous mfgserv_gdp2010t i.year i.continent*i
 xi: areg urbrate nrx_previous mfg_previous mfgserv_gdp2010t i.year i.continent*i.year primacy_prev i.year*i.region nrx1960t urbrate1960t auto_prev drought_prev pop r2density_prev popgrowthrate_prev conflict_prev [pw=pop] if (year == 1970 | year == 1980 | year == 1990 | year == 2000 | year == 2010), robust absorb(country) cluster(country)
 *Adds region FEs interacted with year FEs which controls for time-variant trends within the region; regions finer than areas used in regression 2
 
+
+
+************************
+*** REPLICATION OF TABLE 4
+************************
+*Further investigation of causality using same panel structure as used in Table 3 
  
+drop if country == "Bahamas" | country == "China, Macao SAR" | country == "Eritrea" | country == "Somalia"
+*Countries dropped for missingness
+
+*Regression (1)
+xi: areg urbrate nrx_previous mfg_previous mfgserv_gdp2010t i.year i.continent*i.year primacy_prev i.year*i.region nrx1960t urbrate1960t auto_prev drought_prev pop r2density_prev popgrowthrate_prev conflict_prev [pw=pop] if (year == 1970 | year == 1980 | year == 1990 | year == 2000 | year == 2010), robust absorb(country) cluster(country)
+*Same as Table 3 Regression 1
+
+*Regression (2)
+xi: areg nrx2_x_gdp nrx_previous mfg_previous mfgserv_gdp2010t i.year i.continent*i.year primacy_prev i.year*i.region nrx1960t urbrate1960t auto_prev drought_prev pop r2density_prev popgrowthrate_prev conflict_prev [pw=pop] if (year == 1970 | year == 1980 | year == 1990 | year == 2000 | year == 2010), robust absorb(country) cluster(country)
+*Effect of natural resource exports from the previous period on urbanization in the next period, no significant effect as commodity prices are volatile while urbanization relatively steady
+
+*Regression (3)
+xi: areg nrx2_x_gdp urb_previous mfg_previous mfgserv_gdp2010t i.year i.continent*i.year primacy_prev i.year*i.region nrx1960t urbrate1960t auto_prev drought_prev pop r2density_prev popgrowthrate_prev conflict_prev [pw=pop] if (year == 1970 | year == 1980 | year == 1990 | year == 2000 | year == 2010), robust absorb(country) cluster(country)
+*Effect of urbanization in the previous period on current natural resource exports, no significant effect
+
+*Regression (4)
+xi: areg urbrate nrx2_x_gdp mfg_previous mfgserv_gdp2010t i.year i.continent*i.year primacy_prev i.year*i.region nrx1960t urbrate1960t auto_prev drought_prev pop r2density_prev popgrowthrate_prev conflict_prev [pw=pop] if (year == 1970 | year == 1980 | year == 1990 | year == 2000 | year == 2010), robust absorb(country) cluster(country)
+*Effect of current natural resource exports on current urbanization rate, no significant effect 
+
+*Regression (5)
+xi: ivreg2 urbrate (nrx_previous = discov_post comm_p) mfg_previous mfgserv_gdp2010t nrx1960t urbrate1960t i.year i.region*i.year i.continent*i.year primacy_prev auto_prev drought_prev r2density_prev popgrowthrate_prev conflict_prev pop i.country [pw=pop] if (year == 1970 | year == 1980 | year == 1990 | year == 2000 | year == 2010), robust cluster(country) first
+*Instrumental variable to estimate causal effect of natural resources on urbanization rate; nrx_previous is used as an instrument, a dummy variable for all observations where natural resources have been discovered, comm_p is a variable for price shocks also used as such
+
+*Regression (6)
+xi: ivreg2 urbrate (nrx_previous = discov_post comm_p) mfg_previous mfgserv_gdp2010t nrx1960t urbrate1960t i.year i.region*i.year i.continent*i.year primacy_prev auto_prev drought_prev r2density_prev popgrowthrate_prev conflict_prev pop i.country [pw=pop] if (year == 1970 | year == 1980 | year == 1990 | year == 2000 | year == 2010) & nrx2_mean > 10, robust cluster(country) first
+*same as above but restricted to countries whose natural resource exports as percent of GDP has been, on average, been above ten percent
+
+
+
+************************
+*** REPLICATION OF TABLE 5
+************************
+
+
