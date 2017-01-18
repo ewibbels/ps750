@@ -11,7 +11,7 @@ summary(data)
 
 
 ################################
-### EXTENSION DATA
+### EXTENSION DATA 1
 ################################
 
 data_ext=read.csv("Extension_Data.csv")
@@ -47,4 +47,38 @@ summary(final)
 
 final=merge(data,data_ext, by=c("country","year"), all.x=T)
 
+summary(final)
+
 write.csv(final,"final.csv")
+
+
+
+################################
+### EXTENSION DATA 2
+################################
+
+data_ext2=read.csv("Extension_Data_2.csv")
+
+summary(data_ext2)
+
+data_ext2$year=data_ext2$ï..Time
+
+data_ext2$food_price=data_ext2$Agr..Food..2010.100..real.2010...KIFOOD.
+data_ext2$grain_price=data_ext2$Agr..Food..Grains..2010.100..real.2010...KIGRAINS.
+data_ext2$raw_price=data_ext2$Agr..Raw.materials..2010.100..real.2010...KIRAW_MATERIAL.
+
+keep_var2=c("year","food_price","grain_orice","raw_price")
+
+data_ext2=data_ext2[,keep_var2]
+
+
+
+################################
+### MERGE DATA FRAMES, AGAIN
+################################
+
+final2=merge(data,data_ext2, by=c("year"), all.x=T)
+
+summary(final2)
+
+write.csv(final2,"final2.csv")

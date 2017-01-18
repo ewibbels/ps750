@@ -1,0 +1,4 @@
+﻿Code,Indicator Name,Source
+KIFOOD,"Agr: Food, 2000=100, constant 2000$",World Bank.
+KIGRAINS,"Agr: Food: Grains, 2000=100, constant 2000$",World Bank.
+KIRAW_MATERIAL,"Agr: Raw materials, 2000=100, constant 2000$",World Bank.
