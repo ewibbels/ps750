@@ -8,11 +8,11 @@
 ### ORIGINAL DATA
 ################################
 
-library(foreign)
+library(foreign) # Load foreign package to read dta (stata) files
 
-data=read.dta("gjv.dta")
+data=read.dta("gjv.dta") # Read main replication dataset
 
-summary(data)
+summary(data) # Check out the summary statistics
 
 
 
@@ -20,10 +20,13 @@ summary(data)
 ### REPLICATION OF INITIAL REGRESSIONS (TABLE 1)
 ################################
 
-data_2010=data[data$year==2010,]
+# We replicate table 1 in R
+# Here we begin with the OLS regressions, later use robust standard errors
+
+data_2010=data[data$year==2010,] # Only use year 2010 data for cross-sectional analysis
 summary(data_2010)
 
-lm1 = lm(urbrate ~ mfgserv_gdp2010 + nrx2_mean, weights=pop, data=data_2010)
+lm1 = lm(urbrate ~ mfgserv_gdp2010 + nrx2_mean, weights=pop, data=data_2010) # Main regression, note: weighted by population
 summary(lm1)
 
 lm2 = lm(urbrate ~ mfgserv_gdp2010 + nrx2_mean + factor(continent), weights=pop, data=data_2010)
@@ -44,14 +47,19 @@ summary(lm5)
 ### ROBUST STANDARD ERRORS
 ################################
 
+# We need the following packages to estimate robust standard errors
+
 library(sandwich)
 library(lmtest)
 
-coeftest(lm1, vcov = vcovHC(lm1, "HC0"))
+coeftest(lm1, vcov = vcovHC(lm1, "HC0")) # Robust standard errors for all regressions
 coeftest(lm2, vcov = vcovHC(lm2, "HC0"))
 coeftest(lm3, vcov = vcovHC(lm3, "HC0"))  
 coeftest(lm4, vcov = vcovHC(lm4, "HC0"))  
 coeftest(lm5, vcov = vcovHC(lm5, "HC0"))
+
+# Please note that we have included replications for
+# all tables/all regressions (including descriptions) as stata do file
 
 
 
@@ -59,15 +67,21 @@ coeftest(lm5, vcov = vcovHC(lm5, "HC0"))
 ### BOOTSTRAPPING
 ################################
 
+# We need the boot package for the boostrapping procedure
+
 library(boot)
+
+# We create a boot function, which is the foundation for the boostrapping procedure
 
 boot.function=function(formula, data, indices){
   d=data[indices,]
-  fit =lm(formula, data=d)
+  fit=lm(formula, data=d)
   return(coef(fit))
 }
 
-results1=boot(data=data_2010, statistic=boot.function, R=1000, formula=lm1)
+# We estimate 1000 regressions based on samples of the data, then inspect the distribution of the coefficient of interest
+
+results1=boot(data=data_2010, statistic=boot.function, R=1000, formula=lm1) # Bootstrap based on our dataset
 results1
 plot(results1, index=2)
 
@@ -87,11 +101,16 @@ results5=boot(data=data_2010, statistic=boot.function, R=1000, formula=lm5)
 results5
 plot(results5, index=2)
 
+# Please note that we did not include robust standard errors here, so the bootstrap procedure is imperfect
+
 
 
 ################################
 ### REPLICATION OF PANEL REGRESSIONS (TABLE 3)
 ################################
+
+# Here we use bootstrapping to look at the robustness of the panel regressions (table 3)
+# Again, the imperfection here is that we have not applied robust standard errors (greater complexity)
 
 library(multiwayvcov)
 library(lmtest)
