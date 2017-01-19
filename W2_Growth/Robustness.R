@@ -145,13 +145,59 @@ coeftest(lm7, vcov=vcovHC(lm7,type="HC0",cluster="country"))
 
 
 ################################
-### BOOTSTRAPPING
+### SIMPLE BOOTSTRAPPING
 ################################
 
-results6=boot(data=data_2010, statistic=boot.function, R=1000, formula=lm6)
+# Note that this does not account for clustered standard errors
+# But we have included a function below that does
+
+results6=boot(data=data, statistic=boot.function, R=1000, formula=lm6)
 results6
 plot(results6, index=2)
 
-results7=boot(data=data_2010, statistic=boot.function, R=1000, formula=lm7)
+results7=boot(data=data, statistic=boot.function, R=1000, formula=lm7)
 results7
 plot(results7, index=2)
+
+
+
+################################
+### BOOTSTRAPPING WITH CLUSTERED STANDARD ERRORS
+################################
+
+# Below is a bootstrapping function that accounts for clusters
+# This function is superior in terms of estimating the correct standard errors
+# Function from here: https://www.r-bloggers.com/the-cluster-bootstrap/
+
+clusbootreg <- function(formula, data, cluster, reps=1000){
+  reg1 <- lm(formula, data)
+  clusters <- names(table(cluster))
+  sterrs <- matrix(NA, nrow=reps, ncol=length(coef(reg1)))
+  for(i in 1:reps){
+    index <- sample(1:length(clusters), length(clusters), replace=TRUE)
+    aa <- clusters[index]
+    bb <- table(aa)
+    bootdat <- NULL
+    for(j in 1:max(bb)){
+      cc <- data[cluster %in% names(bb[bb %in% j]),]
+      for(k in 1:j){
+        bootdat <- rbind(bootdat, cc)
+      }
+    }
+    sterrs[i,] <- coef(lm(formula, bootdat))
+  }
+  val <- cbind(coef(reg1),apply(sterrs,2,sd))
+  colnames(val) <- c("Estimate","Std. Error")
+  return(val)
+}
+
+
+
+################################
+### APPLY TO THE ABOVE REGRESSIONS
+################################
+
+clusbootreg(lm6, data=data, cluster=data$country)
+clusbootreg(lm7, data=data, cluster=data$country)
+
+# The results show that the original estimates are very close to the bootstrapped results

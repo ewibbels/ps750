@@ -1,5 +1,5 @@
 ################################
-### ORIGINAL DATA
+### LOAD ORIGINAL REPLICATION DATA
 ################################
 
 library(foreign) # Loading the foreign library to read dta (stata) files
@@ -98,7 +98,7 @@ write.csv(final2,"final2.csv") # Write csv file
 
 
 ################################
-### EXTENSION TABLE 3
+### EXTENSION OF REGRESSIONS IN TABLE 3
 ################################
 
 data2=read.csv("final2.csv") # Read csv file
@@ -142,6 +142,7 @@ coeftest(lm7ext1, lm7ext1.vcovCL)
 coeftest(lm7ext1, vcov=vcovHC(lm7ext1,type="HC0",cluster="country"))
 
 
+
 ################################
 ### FIRST REGRESSION EXTENSION 2
 ################################
@@ -154,6 +155,7 @@ summary(lm6ext2)
 lm6ext2.vcovCL=cluster.vcov(lm6ext2, data2$country)
 coeftest(lm6ext2, lm6ext2.vcovCL)
 coeftest(lm6ext2, vcov=vcovHC(lm6ext2,type="HC0",cluster="country"))
+
 
 
 ################################
@@ -172,7 +174,8 @@ coeftest(lm7ext2, vcov=vcovHC(lm7ext2,type="HC0",cluster="country"))
 
 
 ################################
-# NOTE: all further and additional extensions can be found in the stata do file provided (we only did part of the work in R)
+### NOTE: all further and additional extensions can be found in
+### the stata do file provided (we only did part of the work in R)
 ################################
 
 
