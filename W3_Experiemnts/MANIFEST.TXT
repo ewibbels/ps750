@@ -1,0 +1,8 @@
+balance.tab (text/tab-separated-values) 44529 bytes.
+clarify.tab (text/tab-separated-values) 5731 bytes.
+electionresults_replication_public.tab (text/tab-separated-values) 1162630 bytes.
+MaleskySchulerTran_APSR_2012_SSRN.pdf (application/pdf) 1117407 bytes.
+MaleskySchulerTran_replicationApril2013_em.do (text/x-stata-syntax; charset=US-ASCII) 43242 bytes.
+MaleskySchulerTran_WebAppendix_March32016.pdf (application/pdf) 1489392 bytes.
+minister_replication2.tab (text/tab-separated-values) 2253464 bytes.
+power_total_with_PAPI_NA2.tab (text/tab-separated-values) 91690 bytes.
