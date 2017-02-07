@@ -7,6 +7,8 @@ set more off
 use bruhn_gallego_data_restat, clear
 
 * Creation of dummy variables
+* Here the authors create the three variables 'good', 'bad', and 'ugly'
+* The variables are based on population density (lpopd)
 
 foreach x in 50 75{
 egen lpopd_`x'=pctile(lpopd), p(`x')
@@ -25,6 +27,7 @@ replace egood2_`x'=0 if egood2_`x'==.
 sum egood2* ebad ugly*
 
 * Table 1
+* Creates table 1, with summary statistics by country
 
 log using table1.txt, replace text
 	
@@ -34,6 +37,7 @@ log using table1.txt, replace text
 log close
 
 * Table 2
+* Creates table 2, with summary statistics by variable
 
 log using table2.txt, replace text
 	
@@ -42,6 +46,9 @@ log using table2.txt, replace text
 log close
 
 * Table 4
+* Creates table 4 with first regression analyses
+* The authors use a for loop to go through the different colonial activities as dependent variables
+* Also use robust standard errors, clustered at population density levels through "cluster(lpopd)"
 
 egen country_n=group(country)
 for num 1/17: g cdX=0 if country_n~=.
@@ -63,6 +70,9 @@ log using table4.txt, replace text
 log close
 
 * Table 5
+* Creates table 5 with the key regressions
+* These show the influence of good, bad, and ugly activities on development
+* Here the dependent variable is GDP PC
 
 log using table5.txt, replace text
 
@@ -103,6 +113,8 @@ log using table5.txt, replace text
 log close
 	
 * Table 6
+* Creation of table 6 with alternative measurement of development
+* Here the dependent variable is the poverty level (log)
 
 log using table6.txt, replace text
 
@@ -138,6 +150,7 @@ log using table6.txt, replace text
 log close
 
 * Table 7
+* Creates table 7 with interaction of pre-colonial activities and development
 
 preserve 
 log using table7.txt,replace text
@@ -168,6 +181,7 @@ log using table7.txt,replace text
 log close
 
 * Table 8
+* Creates table 8 to test the reversal of fortunes hypothesis
 
 log using table8.txt, replace text
 
@@ -179,7 +193,7 @@ log using table8.txt, replace text
 
 log close
 
-* Table 9
+* Table 9 
 
 log using table9.txt, replace text
 
@@ -206,45 +220,3 @@ log using table9.txt, replace text
 	xml_tab reg1 reg2 reg3 reg4 using "tables.xls", below font("Times New Roman" 11) keep(egood2_50 ebad ugly_50 lpopd) stats(N r2_a) sheet("Table 9") append
 
 log close
-
-* Table 1 of the Appendix
-
- 	forvalues z=1/17 {
- 	areg lyppp egood2_50 ebad ugly_50 lpopd temp* rain* alti* landlocked if cd`z'~=1, a(country) cluster(lpopd)
-	estimates store reg`z'
-	}
-	xml_tab reg1 reg2 reg3 reg4 reg5 reg6 reg7 reg8 reg9 reg10 reg11 reg12 reg13 reg14 reg15 reg16 reg17 using "tables.xls", below font("Times New Roman" 11) keep(egood2_50 ebad ugly_50 lpopd) stats(N r2_a) sheet("App T1a") append
-
-	estimates clear
-
-	areg lyppp egood2_50 ebad ugly_50 lpopd temp* rain* alti* landlocked if country~="Guatemala" & country~="Honduras" & country~="Panama" & country~="Paraguay" & country~="Uruguay" & country~="Venezuela", a(country) cluster(lpopd)
-	estimates store reg1
-	xml_tab reg1 using "tables.xls", below font("Times New Roman" 11) keep(egood2_50 ebad ugly_50 lpopd) stats(N r2_a) sheet("App T1b") append
-
-* Table 2 of the Appendix
-
-log using app_table2.txt, replace text
-
-	areg lyppp egood2_50 ebad ugly_50 lpopd temp* rain* alti* landlocked, a(country) cluster(lpopd)
-	estimates store reg1a
-	test egood2_50=ebad
-	test egood2_50=ugly_50
-	test ebad=ugly_50
-
-	areg lyppp egood2_av ebad ugly_av lpopd temp* rain* alti* landlocked, a(country) cluster(lpopd)
-	estimates store reg2a
-	test egood2_av=ebad
-	test egood2_av=ugly_av
-	test ebad=ugly_av
-
-	areg lyppp egood2_75 ebad ugly_75 lpopd temp* rain* alti* landlocked, a(country) cluster(lpopd)
-	estimates store reg3a
-	test egood2_75=ebad
-	test egood2_75=ugly_75
-	test ebad=ugly_75
-
-	xml_tab reg1a reg2a reg3a using "tables.xls", below font("Times New Roman" 11) drop(_cons) stats(N r2_a) sheet("App T2") append
-	estimates clear 
-
-log close
-
