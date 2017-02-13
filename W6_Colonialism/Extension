@@ -1,0 +1,175 @@
+---
+title: "Bruhn_Gallego_June_2010 extension"
+output: pdf_document
+---
+
+Loading data
+
+```{r}
+d_bg <- read.table(
+  "/Users/baika/Desktop/Spring 17/Development/Colonial replication/Bruhn_Gallego_June_2010_replication/bruhn_gallego_data_restat.tab",
+  sep="\t", header=TRUE)
+
+```
+Generating dummies
+```{r}
+#dummy variable for above-median population density
+for(i in 1:length(d_bg$lpopd)){
+
+  if(d_bg$lpopd[i]>median(d_bg$lpopd)){
+    
+    d_bg$hlpopd[i]<-1}
+  else{d_bg$hlpopd[i]<-0}
+}
+
+d_bg$ugly<-NULL
+for(i in 1:length(d_bg$hlpopd)){
+
+  if(d_bg$hlpopd[i]==1){
+    if(d_bg$egood[i]==1){
+      d_bg$ugly[i]<-1
+    } else{d_bg$ugly[i]<-0}
+  }
+        else{d_bg$ugly[i]<-0}
+
+    }
+d_bg$egood2_50<-NULL
+for(i in 1:length(d_bg$hlpopd)){
+
+  if(d_bg$hlpopd[i]==0){
+    if(d_bg$egood[i]==1){
+      d_bg$egood2_50[i]<-1
+    } else{d_bg$egood2_50[i]<-0}
+  }
+        else{d_bg$egood2_50[i]<-0}
+
+    }
+
+sum(d_bg$egood2_50,d_bg$bad,d_bg$ugly)
+length(d_bg$egood)
+
+```
+
+Replicating Table 10 
+```{r}
+#	areg lseats egood2_50 ebad ugly_50 lpopd temp rain* alti* landlocked, a(country) cluster(lpopd)
+#gen egood2_`x'=1 if hlpopd_`x'==0 & egood==1
+#replace egood2_`x'=0 if egood2_`x'==.
+m_10.5<-lm(lseats~egood2_50+ebad+ugly+ lpopd+ temp_avg+temp2+rainfall+rain2+ alti+alti2+landlocked+factor(country), data=d_bg)
+summary(m_10.5)
+
+
+
+library(plm)
+library(lmtest)
+library(multiwayvcov)
+
+
+m_10.5.vcovCL = cluster.vcov(m_10.5, d_bg$lpopd) 
+m_10.5_CSE = coeftest(m_10.5, m_10.5.vcovCL) 
+m_10.5_CSE
+```
+```{r}
+
+```
+
+Adding conflict variable
+```{r}
+
+d_bg$RegionalConflict<-NULL 
+d_bg$RegionalConflict<-0
+
+d_bg$RegionalConflict[d_bg$state=="Norte"]<-3 #Alta Verapaz 3
+d_bg$RegionalConflict[d_bg$state=="Antioquia"]<-7
+d_bg$RegionalConflict[d_bg$state=="Apure"]<-1
+d_bg$RegionalConflict[259]<-1 #Ucayali region (Atalaya)
+d_bg$RegionalConflict[d_bg$state=="Boyacá"]<-1 #Doesn't exist in the dataset for some reason
+d_bg$RegionalConflict[140]<-3 #Cabañas
+d_bg$RegionalConflict[d_bg$state=="Caldas"]<-1
+d_bg$RegionalConflict[d_bg$state=="Casanare"]<-1
+d_bg$RegionalConflict[246]<-6 #Junín region; #Chanchamayo 1 #Perene 3 #satipo 2
+d_bg$RegionalConflict[d_bg$state=="Chiapas"]<-1 
+d_bg$RegionalConflict[236]<-1 #Concordanqui in Amazonas Peru
+d_bg$RegionalConflict[d_bg$state=="Cundinamarca"]<-5
+d_bg$RegionalConflict[253]<-4 #Pasco region #Oxapampa 3, Daniel Alcides Carri_n 1
+d_bg$RegionalConflict[244]<-2 #Huánuco region #Lauricocha 1, Puerto Inca 1
+d_bg$RegionalConflict[d_bg$state=="Meta"]<-1 
+d_bg$RegionalConflict[d_bg$state=="Suroccidente"]<-2 #Nahuala 1 #solola 1
+d_bg$RegionalConflict[d_bg$state=="Oaxaca"]<-2
+d_bg$RegionalConflict[216]<-1 #Panama
+d_bg$RegionalConflict[d_bg$state=="Presidente Hayes"]<-1
+d_bg$RegionalConflict[d_bg$state=="Noroccidente"]<-1 #Quiché 1
+d_bg$RegionalConflict[d_bg$state=="Santa Fe"]<-1
+d_bg$RegionalConflict[d_bg$state=="Santander"]<-2
+d_bg$RegionalConflict[d_bg$state=="Tolima"]<-1
+d_bg$RegionalConflict[d_bg$state=="West Virginia"]<-1
+
+#Missing Boyaca; first sum should be 49
+sum(d_bg$RegionalConflict)
+#length(d_cfsa$Region)
+
+
+
+
+
+```
+
+
+Counting
+```{r}
+d_bg$RegionalConflict[d_bg$state=="Norte"]#<-3 #Alta Verapaz 3
+d_bg$RegionalConflict[d_bg$state=="Antioquia"]#<-7
+d_bg$RegionalConflict[d_bg$state=="Apure"]<-1
+d_bg$RegionalConflict[259]#<-1 #Ucayali region (Atalaya)
+d_bg$RegionalConflict[d_bg$state=="Boyacá"]#<-1 #Doesn't exist in the dataset for some reason
+d_bg$RegionalConflict[140]#<-3 #Cabañas
+d_bg$RegionalConflict[d_bg$state=="Caldas"]#<-1
+d_bg$RegionalConflict[d_bg$state=="Casanare"]#<-1
+d_bg$RegionalConflict[246]#<-6 #Junín region; #Chanchamayo 1 #Perene 3 #satipo 2
+d_bg$RegionalConflict[d_bg$state=="Chiapas"]#<-1 
+d_bg$RegionalConflict[236]#<-1 #Concordanqui in Amazonas Peru
+d_bg$RegionalConflict[d_bg$state=="Cundinamarca"]#<-5
+d_bg$RegionalConflict[253]#<-4  #Pasco region #Oxapampa 3, Daniel Alcides Carri_n 1
+d_bg$RegionalConflict[244]#<-2 #Huánuco region #Lauricocha 1, Puerto Inca 1
+d_bg$RegionalConflict[d_bg$state=="Meta"]#<-1 
+d_bg$RegionalConflict[d_bg$state=="Suroccidente"]#<-2 #Nahuala 1 #solola 1
+d_bg$RegionalConflict[d_bg$state=="Oaxaca"]#<-2
+d_bg$RegionalConflict[216]#<-1 #Panama
+d_bg$RegionalConflict[d_bg$state=="Presidente Hayes"]#<-1
+d_bg$RegionalConflict[d_bg$state=="Noroccidente"]#<-1 #Quiché 1
+d_bg$RegionalConflict[d_bg$state=="Santa Fe"]#<-1
+d_bg$RegionalConflict[d_bg$state=="Santander"]#<-2
+d_bg$RegionalConflict[d_bg$state=="Tolima"]#<-1
+d_bg$RegionalConflict[d_bg$state=="West Virginia"]#<-1
+```
+
+Replicating Table 10=>Change DV into conflict count variable 
+```{r}
+#	areg lseats egood2_50 ebad ugly_50 lpopd temp rain* alti* landlocked, a(country) cluster(lpopd)
+#gen egood2_`x'=1 if hlpopd_`x'==0 & egood==1
+#replace egood2_`x'=0 if egood2_`x'==.
+m_10.5.2<-lm(RegionalConflict~egood2_50+ebad+ugly+ lpopd+ temp_avg+temp2+rainfall+rain2+ alti+alti2+landlocked+factor(country), data=d_bg)
+summary(m_10.5.2)
+
+m_10.1<-lm(lyppp~egood2_50+ebad+ugly+ lpopd+ temp_avg+temp2+rainfall+rain2+ alti+alti2+landlocked+factor(country), data=d_bg)
+
+m_10.1.vcovCL = cluster.vcov(m_10.1, d_bg$lpopd) 
+m_10.1_CSE = coeftest(m_10.1, m_10.1.vcovCL) 
+m_10.1_CSE
+
+
+#Replicating table 10 with conflict DV
+m_10.5.2<-lm(RegionalConflict~egood2_50+ebad+ugly+ lpopd+ temp_avg+temp2+rainfall+rain2+ alti+alti2+landlocked+factor(country), data=d_bg)
+summary(m_10.5.2)
+
+m_10.5.2.vcovCL = cluster.vcov(m_10.5.2, d_bg$lpopd) 
+m_10.5.2_CSE = coeftest(m_10.5.2, m_10.5.vcovCL) 
+m_10.5.2_CSE
+#Creating tables
+library(stargazer)
+stargazer(m_10.1_CSE,m_10.5_CSE,m_10.5.2_CSE,dep.var.labels=c("Log GDP per Capita", "LogSeats per Voter","Conflict"))
+
+
+```
+
+
