@@ -1,0 +1,10 @@
+price		
+	(1)	(2)
+	OLS	
+lntotactualposts	-0.429***	-0.436***
+	(0.136)	(0.143)
+Observations	1950	1729
+Test elas = -1	0.00	0.00
+Test elas = 0	0.00	0.00
+Standard errors in parentheses		
+* significant at 10%; ** significant at 5%; *** significant at 1%		

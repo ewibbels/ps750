@@ -1,0 +1,27 @@
+	lnmeantotprovposts11
+lztroopsremain11	0.835***
+	(0.129)
+truckage	-0.026
+	(0.042)
+truckage2	0.003
+	(0.003)
+Trip carries used steel	-0.151
+	(0.111)
+Trip carries construction goods	0.009
+	(0.060)
+Trip carries food	-0.106**
+	(0.052)
+Trip carries agricultural products	-0.195***
+	(0.056)
+Trip carries manufactured goods	-0.069
+	(0.054)
+ztruckovertons	-0.017**
+	(0.007)
+lnsal	0.083
+	(0.058)
+Constant	2.127**
+	(0.824)
+Observations	144
+F	41.77
+Standard errors in parentheses	
+* significant at 10%; ** significant at 5%; *** significant at 1%	

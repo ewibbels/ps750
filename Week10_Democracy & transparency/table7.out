@@ -1,0 +1,15 @@
+Gebang				
+	(1)	(2)	(3)	(4)
+	Purchased coupon for Gebang weigh station			
+ztruckovertons	0.003		0.039**	
+	(0.010)		(0.019)	
+lnzdrivermonthly		0.305**		
+		(0.119)		
+Drivers salary per trip				0.000
+				(0.000)
+Constant	0.495***	-4.018**	0.074	0.504*
+	(0.138)	(1.760)	(0.210)	(0.256)
+Observations	47	47	47	46
+R-squared	0.00	0.09		0.00
+Robust standard errors in parentheses				
+* significant at 10%; ** significant at 5%; *** significant at 1%				

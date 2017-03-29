@@ -1,0 +1,12 @@
+log total payments			
+	(1)	(2)	(3)
+	OLS		
+lnmeantotprovposts11	-0.750***	-0.706***	-0.674***
+	(0.063)	(0.064)	(0.218)
+Constant	14.154***	13.754***	13.873***
+	(0.196)	(1.583)	(2.453)
+Observations	161	144	90
+Test elas = 1	0.00	0.00	0.14
+Test elas = 0	0.00	0.00	0.00
+Standard errors in parentheses			
+* significant at 10%; ** significant at 5%; *** significant at 1%			

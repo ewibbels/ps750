@@ -1,0 +1,14 @@
+	Both routes with Time Cubic - D-in-D
+lnmeantotprovposts11	-0.735831***
+	(0.209705)
+t1	0.019609
+	(0.031708)
+t2	-0.000046
+	(0.000072)
+t3	0.000000
+	(0.000000)
+Observations	2369
+Test elas = -1	0.21
+Test elas = 0	0.00
+Standard errors in parentheses	
+* significant at 10%; ** significant at 5%; *** significant at 1%	

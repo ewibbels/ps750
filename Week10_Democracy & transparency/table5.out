@@ -1,0 +1,11 @@
+direction of travel		
+	(1)	(2)
+	lnpostpayment	
+meankecpctile	0.145***	-0.178
+	(0.049)	(0.280)
+Constant	8.561***	8.236***
+	(0.134)	(0.196)
+Observations	4190	1089
+R-squared	0.76	0.72
+Robust standard errors in parentheses		
+* significant at 10%; ** significant at 5%; *** significant at 1%		

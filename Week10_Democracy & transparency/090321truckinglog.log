@@ -1,0 +1,2767 @@
+------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/changqing/Documents/PS750 PE of development /replication 2
+> /JPEFinal/090321truckinglog.log
+  log type:  text
+ opened on:  27 Mar 2017, 19:03:57
+
+. 
+. 
+. ************extension ************* 7 days interval 
+. ***************************
+.         * Code basic variables we need for analysis
+.         ***************************
+.         use codedkabmerged,clear
+
+.         g tripinterval = round(ztripdate / 7) 
+(4 missing values generated)
+
+.         g tripmonth = year(ztripdate)*100+ month(ztripdate)
+(4 missing values generated)
+
+.         g BAroute = (zroute == "B") if zroute != ""
+(4 missing values generated)
+
+.         g ztroopstnispecialbripolB = ztroopstnispecialbripol*BAroute
+(4 missing values generated)
+
+.         g ztroopsremaintnispecialbripolB = ztroopsremaintnispecialbripol*BAr
+> oute
+(4 missing values generated)
+
+.         
+.         for var ztotkabpayment ztotkabposts : g lnX = ln(X)
+
+->  g lnztotkabpayment = ln(ztotkabpayment)
+(1,598 missing values generated)
+
+->  g lnztotkabposts = ln(ztotkabposts)
+(1,481 missing values generated)
+
+.         for var ztroopsremaintnispecialbripol : g lX = ln(X)
+
+->  g lztroopsremaintnispecialbripol = ln(ztroopsremaintnispecialbripol)
+(1,512 missing values generated)
+
+.         for var ztroopsremaintnispecialbripol : replace lX = 0 if substr(zpo
+> stkabid,1,2) == "12" /*since no data for sumatra this shoudl just be 0, not 
+> missing*/
+
+->  replace lztroopsremaintnispecialbripol = 0 if substr(zpostkabid,1,2) == `"
+> 12"'
+(1,413 real changes made)
+
+.         g lztroopsremaintnispecialbripolB = lztroopsremaintnispecialbripol*B
+> Aroute
+(103 missing values generated)
+
+.         
+. 
+.         tempfile temppremerge
+
+.         save temppremerge,replace
+file temppremerge.dta saved
+
+.                 
+.                 
+.         ********************
+.         * Post level analysis
+.         ********************
+.         
+.         * Merge in post level data
+.         mmerge trid zpostkabid using codedperpost, type(1:n) ukeep(zpost*)
+
+------------------------------------------------------------------------------
+> -
+merge specs          |
+       matching type | 1:n
+  mv's on match vars | none
+  unmatched obs from | both
+---------------------+--------------------------------------------------------
+> -
+  master        file | temppremerge.dta
+                 obs |   3124
+                vars |    127
+          match vars | trid zpostkabid  (key)
+  -------------------+--------------------------------------------------------
+> -
+  using         file | codedperpost.dta
+                 obs |   6045
+                vars |     13  (selection via udrop/ukeep)
+          match vars | trid zpostkabid  (not a key)
+---------------------+--------------------------------------------------------
+> -
+variables trid zpostkabid do not uniquely identify observations in
+    /var/folders/cz/22lkzq6s76d4j39wmlsf9r3c0000gn/T//S_12361.000003
+result          file | temppremerge.dta
+                 obs |   7526
+                vars |    140  (including _merge)
+         ------------+--------------------------------------------------------
+> -
+              _merge |   1481  obs only in master data                (code==1
+> )
+                     |   6045  obs both in master and using data      (code==3
+> )
+------------------------------------------------------------------------------
+> -
+
+.         
+.         * Make variable for payment at post
+.         g lnzpostpayment = ln(zpostpayment)
+(2,067 missing values generated)
+
+.         
+.         * Make post id, defined as unique of subdistrictid (zpostkecid) and 
+> which organization runs the post (zpostwhostops)
+.         egen postidkec = group(zpostkecid zpostwhostops )
+(1481 missing values generated)
+
+.         
+.         
+.         ***************
+.         * Clutsering / FE vars
+.         ***************
+.         capture drop postmonth
+
+.         capture drop postdirmonth
+
+.         egen postmonth = group(zpostkecid zpostwhostops tripmonth)
+(1511 missing values generated)
+
+.         egen postdirmonth = group(zpostkecid zpostwhostops tripmonth zroutet
+> oaceh)
+(1599 missing values generated)
+
+.         egen postdir = group(zpostkecid zpostwhostops zroutetoaceh zroute)
+(1599 missing values generated)
+
+.         egen post = group(zpostkecid zpostwhostops )
+(1481 missing values generated)
+
+.         
+.         tempfile temp2
+
+.         save temp2,replace      
+file temp2.dta saved
+
+.         
+.         ** Get aggregate variables from kab dataset above
+.         use temppremerge,clear
+
+.         g zprovid = substr(zpostkabid,1,2)
+
+.         
+.         collapse (sum) ztotkabposts ztroopsremaintnispecialbripol ztroopsrem
+> aintnispecialbripolB ztroopsremaintni ztroopsremaintnispecial ztroopsremainb
+> ri ztroopsremainpol ztroopsremainbkosamapta, by(trid zprovid)
+
+.         ren ztotkabposts ztotprovposts
+
+.         reshape wide ztotprovposts ztroopsremaintnispecialbripol ztroopsrema
+> intnispecialbripolB ztroopsremaintni ztroopsremaintnispecial ztroopsremainbr
+> i ztroopsremainpol ztroopsremainbkosamapta, i(trid) j(zprovid) string
+(note: j = 11 12 99)
+
+Data                               long   ->   wide
+-----------------------------------------------------------------------------
+Number of obs.                      712   ->     307
+Number of variables                  10   ->      25
+j variable (3 values)           zprovid   ->   (dropped)
+xij variables:
+                          ztotprovposts   ->   ztotprovposts11 ztotprovposts12
+>  ztotprovposts99
+          ztroopsremaintnispecialbripol   ->   ztroopsremaintnispecialbripol11
+>  ztroopsremaintnispecialbripol12 ztroopsremaintnispecialbripol99
+         ztroopsremaintnispecialbripolB   ->   ztroopsremaintnispecialbripolB1
+> 1 ztroopsremaintnispecialbripolB12 ztroopsremaintnispecialbripolB99
+                       ztroopsremaintni   ->   ztroopsremaintni11 ztroopsremai
+> ntni12 ztroopsremaintni99
+                ztroopsremaintnispecial   ->   ztroopsremaintnispecial11 ztroo
+> psremaintnispecial12 ztroopsremaintnispecial99
+                    ztroopsremainbrimob   ->   ztroopsremainbrimob11 ztroopsre
+> mainbrimob12 ztroopsremainbrimob99
+                       ztroopsremainpol   ->   ztroopsremainpol11 ztroopsremai
+> npol12 ztroopsremainpol99
+                ztroopsremainbkosamapta   ->   ztroopsremainbkosamapta11 ztroo
+> psremainbkosamapta12 ztroopsremainbkosamapta99
+-----------------------------------------------------------------------------
+
+.         sort trid
+
+.         tempfile postsfile
+
+.         save postsfile,replace
+file postsfile.dta saved
+
+.                 
+.         ** Go back to checkpoint level data and merge in
+.         use temp2
+
+.         
+.         mmerge trid using postsfile
+
+------------------------------------------------------------------------------
+> -
+merge specs          |
+       matching type | auto
+  mv's on match vars | none
+  unmatched obs from | both
+---------------------+--------------------------------------------------------
+> -
+  master        file | temp2.dta
+                 obs |   7526
+                vars |    144
+          match vars | trid  (not a key)
+  -------------------+--------------------------------------------------------
+> -
+  using         file | postsfile.dta
+                 obs |    307
+                vars |     25
+          match vars | trid  (key)
+---------------------+--------------------------------------------------------
+> -
+variable trid does not uniquely identify observations in the master data
+result          file | temp2.dta
+                 obs |   7526
+                vars |    170  (including _merge)
+         ------------+--------------------------------------------------------
+> -
+              _merge |   7526  obs both in master and using data      (code==3
+> )
+------------------------------------------------------------------------------
+> -
+
+.         g zprovid = substr(zpostkabid,1,2)
+
+.         egen tripintervalroute = group(tripinterval zroute)
+(30 missing values generated)
+
+.         
+.         
+.         
+.         for var ztroopsremaintnispecialbripol ztroopsremaintni ztroopsremain
+> tnispecial ztroopsremainbrimob ztroopsremainpol ztroopsremainbkosamapta : g 
+> lX11 = ln(X11)
+
+->  g lztroopsremaintnispecialbripol11 = ln(ztroopsremaintnispecialbripol11)
+
+->  g lztroopsremaintni11 = ln(ztroopsremaintni11)
+(5,516 missing values generated)
+
+->  g lztroopsremaintnispecial11 = ln(ztroopsremaintnispecial11)
+(6,436 missing values generated)
+
+->  g lztroopsremainbrimob11 = ln(ztroopsremainbrimob11)
+(5,328 missing values generated)
+
+->  g lztroopsremainpol11 = ln(ztroopsremainpol11)
+
+->  g lztroopsremainbkosamapta11 = ln(ztroopsremainbkosamapta11)
+(7,008 missing values generated)
+
+.         
+.         g lztroopsremain11 = ln(ztroopsremaintnispecialbripol11)        
+
+.         
+.         g lztroopsremainB11 = lztroopsremain11 * BA
+(30 missing values generated)
+
+.         
+.         
+.         
+.         ****************
+.         * include some control vars
+.         ****************
+.         g truckage = 2006 - ztruckyear
+(114 missing values generated)
+
+.         g truckage2 = truckage^2
+(114 missing values generated)
+
+.         g lnsal = ln(zdrivermonthlysalary)
+(970 missing values generated)
+
+.         g ztruckovertons = max(ztruckweight - ztruckmaxweight,0)
+
+.                 
+.         capture drop tf* ztotkab*
+
+.         capture drop typenum* withdrawal* number*       
+
+.         local postlevelcluster = "post" /*what variable to cluster on for po
+> st level regresions*/
+
+. 
+. 
+.         * Create a posts variable by adding banda aceh posts to mean number 
+> of north sumatra posts over entire sample for each route
+.         bys zroute: egen meanpostsnorthsumatra12 = mean(ztotprovposts12)
+(30 missing values generated)
+
+.         g lnztotallposts = ln(ztotprovposts11+meanpostsnorthsumatra12 )
+(30 missing values generated)
+
+.         
+.         * Create expected total posts variable, where we calculate a drivers
+> ' expectation of how many posts they would face in aceh based on comparable 
+> trips
+.         
+.         preserve
+
+.                 bys trid: keep if _n == 1
+(7,219 observations deleted)
+
+.                 bys tripinterval zroute: egen tempsumpostsaceh = sum(ztotpro
+> vposts11)
+
+.                 bys tripinterval zroute: egen tempcountpostsaceh = count(zto
+> tprovposts11)
+
+.                 g temppredpostsaceh = (tempsumpostsaceh - ztotprovposts11) /
+>  (tempcountpostsaceh - 1)
+(5 missing values generated)
+
+.                 capture drop meanpostsnorthsumatra12 
+
+.                 bys zroute: egen meanpostsnorthsumatra12 = mean(ztotprovpost
+> s12)
+(1 missing value generated)
+
+.                 
+.                 g lnmeantotprovposts11  = ln(temppredpostsaceh + meanpostsno
+> rthsumatra12 )
+(5 missing values generated)
+
+.                 tempfile tempposts11
+
+.                 keep trid lnmeantotprovposts11  
+
+.                 save tempposts11, replace
+file tempposts11.dta saved
+
+.         restore
+
+.         mmerge trid using tempposts11, type(n:1)
+
+------------------------------------------------------------------------------
+> -
+merge specs          |
+       matching type | n:1
+  mv's on match vars | none
+  unmatched obs from | both
+---------------------+--------------------------------------------------------
+> -
+  master        file | temp2.dta
+                 obs |   7526
+                vars |    184
+          match vars | trid  (not a key)
+  -------------------+--------------------------------------------------------
+> -
+  using         file | tempposts11.dta
+                 obs |    307
+                vars |      2
+          match vars | trid  (key)
+---------------------+--------------------------------------------------------
+> -
+variable trid does not uniquely identify observations in the master data
+result          file | temp2.dta
+                 obs |   7526
+                vars |    187  (including _merge)
+         ------------+--------------------------------------------------------
+> -
+              _merge |   7526  obs both in master and using data      (code==3
+> )
+------------------------------------------------------------------------------
+> -
+
+.         assert _merge == 3
+
+.         drop _merge
+
+. 
+.         capture drop t?
+
+.         
+.         * Create cubic in time
+.         g t1 = ztripdate-mdy(1,1,2005)
+(30 missing values generated)
+
+.         g t2 = t1^2
+(30 missing values generated)
+
+.         g t3 = t1^3
+(30 missing values generated)
+
+.         
+.         * Create the log actual number of posts
+.         g lntotactualposts = ln(ztotprovposts11 + ztotprovposts12)
+(50 missing values generated)
+
+.         
+.   
+.         ***********************
+.         * Regressions for Table 2, Panel A
+.         ***********************
+.         
+.         eststo: xi: bencgmreg lnzpostpayment lnmeantotprovposts11 i.postdir 
+> if zprovid == "12" & zroute == "M",  cluster1("post") cluster2(trid) numreal
+> vars(1) 
+i.postdir         _Ipostdir_1-496     (naturally coded; _Ipostdir_1 omitted)
+------------------------------------------------------------------------------
+lnzpostpay~t |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+lnmeantot~11 |  -.5361757   .1512474    -3.55   0.000    -.8326151   -.2397362
+------------------------------------------------------------------------------
+Cluster variables: post trid
+(est1 stored)
+
+.         
+.                 
+.         eststo: xi: bencgmreg lnzpostpayment lnmeantotprovposts11 truckage t
+> ruckage2  zincludedCbesibekas zincludedCconstruction zincludedCfood zinclude
+> dCagprod zincludedCmanufac  ztruckovertons lnsal i.postdir if zprovid == "12
+> " & zroute == "M", cluster1("post") cluster2(trid) numrealvars(10) 
+i.postdir         _Ipostdir_1-496     (naturally coded; _Ipostdir_1 omitted)
+------------------------------------------------------------------------------
+lnzpostpay~t |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+lnmeantot~11 |  -.5551864   .1589017    -3.49   0.000     -.866628   -.2437448
+    truckage |   .0013752    .025034     0.05   0.956    -.0476906     .050441
+   truckage2 |   .0005115   .0018398     0.28   0.781    -.0030944    .0041174
+zincluded~as |    .140269   .1398842     1.00   0.316     -.133899     .414437
+zincludedC~n |  -.0295571   .0684336    -0.43   0.666    -.1636845    .1045704
+zinclude~ood |   .0186678   .0446475     0.42   0.676    -.0688396    .1061752
+zinclude~rod |   .0253047   .1022651     0.25   0.805    -.1751311    .2257405
+zincludedC~c |  -.1656007   .0686852    -2.41   0.016    -.3002212   -.0309802
+ztruckover~s |   .0047923   .0037171     1.29   0.197    -.0024932    .0120777
+       lnsal |   .0559676   .0434342     1.29   0.198    -.0291618     .141097
+------------------------------------------------------------------------------
+Cluster variables: post trid
+(est2 stored)
+
+.         
+.         
+. 
+.         
+.         
+. ************** extension ************* 20 days interval 
+. ***************************
+.         * Code basic variables we need for analysis
+.         ***************************
+.         use codedkabmerged,clear
+
+.         g tripinterval = round(ztripdate / 20) 
+(4 missing values generated)
+
+.         g tripmonth = year(ztripdate)*100+ month(ztripdate)
+(4 missing values generated)
+
+.         g BAroute = (zroute == "B") if zroute != ""
+(4 missing values generated)
+
+.         g ztroopstnispecialbripolB = ztroopstnispecialbripol*BAroute
+(4 missing values generated)
+
+.         g ztroopsremaintnispecialbripolB = ztroopsremaintnispecialbripol*BAr
+> oute
+(4 missing values generated)
+
+.         
+.         for var ztotkabpayment ztotkabposts : g lnX = ln(X)
+
+->  g lnztotkabpayment = ln(ztotkabpayment)
+(1,598 missing values generated)
+
+->  g lnztotkabposts = ln(ztotkabposts)
+(1,481 missing values generated)
+
+.         for var ztroopsremaintnispecialbripol : g lX = ln(X)
+
+->  g lztroopsremaintnispecialbripol = ln(ztroopsremaintnispecialbripol)
+(1,512 missing values generated)
+
+.         for var ztroopsremaintnispecialbripol : replace lX = 0 if substr(zpo
+> stkabid,1,2) == "12" /*since no data for sumatra this shoudl just be 0, not 
+> missing*/
+
+->  replace lztroopsremaintnispecialbripol = 0 if substr(zpostkabid,1,2) == `"
+> 12"'
+(1,413 real changes made)
+
+.         g lztroopsremaintnispecialbripolB = lztroopsremaintnispecialbripol*B
+> Aroute
+(103 missing values generated)
+
+.         
+. 
+.         tempfile temppremerge
+
+.         save temppremerge,replace
+file temppremerge.dta saved
+
+.                 
+.                 
+.         ********************
+.         * Post level analysis
+.         ********************
+.         
+.         * Merge in post level data
+.         mmerge trid zpostkabid using codedperpost, type(1:n) ukeep(zpost*)
+
+------------------------------------------------------------------------------
+> -
+merge specs          |
+       matching type | 1:n
+  mv's on match vars | none
+  unmatched obs from | both
+---------------------+--------------------------------------------------------
+> -
+  master        file | temppremerge.dta
+                 obs |   3124
+                vars |    127
+          match vars | trid zpostkabid  (key)
+  -------------------+--------------------------------------------------------
+> -
+  using         file | codedperpost.dta
+                 obs |   6045
+                vars |     13  (selection via udrop/ukeep)
+          match vars | trid zpostkabid  (not a key)
+---------------------+--------------------------------------------------------
+> -
+variables trid zpostkabid do not uniquely identify observations in
+    /var/folders/cz/22lkzq6s76d4j39wmlsf9r3c0000gn/T//S_12361.000008
+result          file | temppremerge.dta
+                 obs |   7526
+                vars |    140  (including _merge)
+         ------------+--------------------------------------------------------
+> -
+              _merge |   1481  obs only in master data                (code==1
+> )
+                     |   6045  obs both in master and using data      (code==3
+> )
+------------------------------------------------------------------------------
+> -
+
+.         
+.         * Make variable for payment at post
+.         g lnzpostpayment = ln(zpostpayment)
+(2,067 missing values generated)
+
+.         
+.         * Make post id, defined as unique of subdistrictid (zpostkecid) and 
+> which organization runs the post (zpostwhostops)
+.         egen postidkec = group(zpostkecid zpostwhostops )
+(1481 missing values generated)
+
+.         
+.         
+.         ***************
+.         * Clutsering / FE vars
+.         ***************
+.         capture drop postmonth
+
+.         capture drop postdirmonth
+
+.         egen postmonth = group(zpostkecid zpostwhostops tripmonth)
+(1511 missing values generated)
+
+.         egen postdirmonth = group(zpostkecid zpostwhostops tripmonth zroutet
+> oaceh)
+(1599 missing values generated)
+
+.         egen postdir = group(zpostkecid zpostwhostops zroutetoaceh zroute)
+(1599 missing values generated)
+
+.         egen post = group(zpostkecid zpostwhostops )
+(1481 missing values generated)
+
+.         
+.         tempfile temp2
+
+.         save temp2,replace      
+file temp2.dta saved
+
+.         
+.         ** Get aggregate variables from kab dataset above
+.         use temppremerge,clear
+
+.         g zprovid = substr(zpostkabid,1,2)
+
+.         
+.         collapse (sum) ztotkabposts ztroopsremaintnispecialbripol ztroopsrem
+> aintnispecialbripolB ztroopsremaintni ztroopsremaintnispecial ztroopsremainb
+> ri ztroopsremainpol ztroopsremainbkosamapta, by(trid zprovid)
+
+.         ren ztotkabposts ztotprovposts
+
+.         reshape wide ztotprovposts ztroopsremaintnispecialbripol ztroopsrema
+> intnispecialbripolB ztroopsremaintni ztroopsremaintnispecial ztroopsremainbr
+> i ztroopsremainpol ztroopsremainbkosamapta, i(trid) j(zprovid) string
+(note: j = 11 12 99)
+
+Data                               long   ->   wide
+-----------------------------------------------------------------------------
+Number of obs.                      712   ->     307
+Number of variables                  10   ->      25
+j variable (3 values)           zprovid   ->   (dropped)
+xij variables:
+                          ztotprovposts   ->   ztotprovposts11 ztotprovposts12
+>  ztotprovposts99
+          ztroopsremaintnispecialbripol   ->   ztroopsremaintnispecialbripol11
+>  ztroopsremaintnispecialbripol12 ztroopsremaintnispecialbripol99
+         ztroopsremaintnispecialbripolB   ->   ztroopsremaintnispecialbripolB1
+> 1 ztroopsremaintnispecialbripolB12 ztroopsremaintnispecialbripolB99
+                       ztroopsremaintni   ->   ztroopsremaintni11 ztroopsremai
+> ntni12 ztroopsremaintni99
+                ztroopsremaintnispecial   ->   ztroopsremaintnispecial11 ztroo
+> psremaintnispecial12 ztroopsremaintnispecial99
+                    ztroopsremainbrimob   ->   ztroopsremainbrimob11 ztroopsre
+> mainbrimob12 ztroopsremainbrimob99
+                       ztroopsremainpol   ->   ztroopsremainpol11 ztroopsremai
+> npol12 ztroopsremainpol99
+                ztroopsremainbkosamapta   ->   ztroopsremainbkosamapta11 ztroo
+> psremainbkosamapta12 ztroopsremainbkosamapta99
+-----------------------------------------------------------------------------
+
+.         sort trid
+
+.         tempfile postsfile
+
+.         save postsfile,replace
+file postsfile.dta saved
+
+.                 
+.         ** Go back to checkpoint level data and merge in
+.         use temp2
+
+.         
+.         mmerge trid using postsfile
+
+------------------------------------------------------------------------------
+> -
+merge specs          |
+       matching type | auto
+  mv's on match vars | none
+  unmatched obs from | both
+---------------------+--------------------------------------------------------
+> -
+  master        file | temp2.dta
+                 obs |   7526
+                vars |    144
+          match vars | trid  (not a key)
+  -------------------+--------------------------------------------------------
+> -
+  using         file | postsfile.dta
+                 obs |    307
+                vars |     25
+          match vars | trid  (key)
+---------------------+--------------------------------------------------------
+> -
+variable trid does not uniquely identify observations in the master data
+result          file | temp2.dta
+                 obs |   7526
+                vars |    170  (including _merge)
+         ------------+--------------------------------------------------------
+> -
+              _merge |   7526  obs both in master and using data      (code==3
+> )
+------------------------------------------------------------------------------
+> -
+
+.         g zprovid = substr(zpostkabid,1,2)
+
+.         egen tripintervalroute = group(tripinterval zroute)
+(30 missing values generated)
+
+.         
+.         
+.         
+.         for var ztroopsremaintnispecialbripol ztroopsremaintni ztroopsremain
+> tnispecial ztroopsremainbrimob ztroopsremainpol ztroopsremainbkosamapta : g 
+> lX11 = ln(X11)
+
+->  g lztroopsremaintnispecialbripol11 = ln(ztroopsremaintnispecialbripol11)
+
+->  g lztroopsremaintni11 = ln(ztroopsremaintni11)
+(5,516 missing values generated)
+
+->  g lztroopsremaintnispecial11 = ln(ztroopsremaintnispecial11)
+(6,436 missing values generated)
+
+->  g lztroopsremainbrimob11 = ln(ztroopsremainbrimob11)
+(5,328 missing values generated)
+
+->  g lztroopsremainpol11 = ln(ztroopsremainpol11)
+
+->  g lztroopsremainbkosamapta11 = ln(ztroopsremainbkosamapta11)
+(7,008 missing values generated)
+
+.         
+.         g lztroopsremain11 = ln(ztroopsremaintnispecialbripol11)        
+
+.         
+.         g lztroopsremainB11 = lztroopsremain11 * BA
+(30 missing values generated)
+
+.         
+.         
+.         
+.         ****************
+.         * include some control vars
+.         ****************
+.         g truckage = 2006 - ztruckyear
+(114 missing values generated)
+
+.         g truckage2 = truckage^2
+(114 missing values generated)
+
+.         g lnsal = ln(zdrivermonthlysalary)
+(970 missing values generated)
+
+.         g ztruckovertons = max(ztruckweight - ztruckmaxweight,0)
+
+.                 
+.         capture drop tf* ztotkab*
+
+.         capture drop typenum* withdrawal* number*       
+
+.         local postlevelcluster = "post" /*what variable to cluster on for po
+> st level regresions*/
+
+. 
+. 
+.         * Create a posts variable by adding banda aceh posts to mean number 
+> of north sumatra posts over entire sample for each route
+.         bys zroute: egen meanpostsnorthsumatra12 = mean(ztotprovposts12)
+(30 missing values generated)
+
+.         g lnztotallposts = ln(ztotprovposts11+meanpostsnorthsumatra12 )
+(30 missing values generated)
+
+.         
+.         * Create expected total posts variable, where we calculate a drivers
+> ' expectation of how many posts they would face in aceh based on comparable 
+> trips
+.         
+.         preserve
+
+.                 bys trid: keep if _n == 1
+(7,219 observations deleted)
+
+.                 bys tripinterval zroute: egen tempsumpostsaceh = sum(ztotpro
+> vposts11)
+
+.                 bys tripinterval zroute: egen tempcountpostsaceh = count(zto
+> tprovposts11)
+
+.                 g temppredpostsaceh = (tempsumpostsaceh - ztotprovposts11) /
+>  (tempcountpostsaceh - 1)
+(2 missing values generated)
+
+.                 capture drop meanpostsnorthsumatra12 
+
+.                 bys zroute: egen meanpostsnorthsumatra12 = mean(ztotprovpost
+> s12)
+(1 missing value generated)
+
+.                 
+.                 g lnmeantotprovposts11  = ln(temppredpostsaceh + meanpostsno
+> rthsumatra12 )
+(2 missing values generated)
+
+.                 tempfile tempposts11
+
+.                 keep trid lnmeantotprovposts11  
+
+.                 save tempposts11, replace
+file tempposts11.dta saved
+
+.         restore
+
+.         mmerge trid using tempposts11, type(n:1)
+
+------------------------------------------------------------------------------
+> -
+merge specs          |
+       matching type | n:1
+  mv's on match vars | none
+  unmatched obs from | both
+---------------------+--------------------------------------------------------
+> -
+  master        file | temp2.dta
+                 obs |   7526
+                vars |    184
+          match vars | trid  (not a key)
+  -------------------+--------------------------------------------------------
+> -
+  using         file | tempposts11.dta
+                 obs |    307
+                vars |      2
+          match vars | trid  (key)
+---------------------+--------------------------------------------------------
+> -
+variable trid does not uniquely identify observations in the master data
+result          file | temp2.dta
+                 obs |   7526
+                vars |    187  (including _merge)
+         ------------+--------------------------------------------------------
+> -
+              _merge |   7526  obs both in master and using data      (code==3
+> )
+------------------------------------------------------------------------------
+> -
+
+.         assert _merge == 3
+
+.         drop _merge
+
+. 
+.         capture drop t?
+
+.         
+.         * Create cubic in time
+.         g t1 = ztripdate-mdy(1,1,2005)
+(30 missing values generated)
+
+.         g t2 = t1^2
+(30 missing values generated)
+
+.         g t3 = t1^3
+(30 missing values generated)
+
+.         
+.         * Create the log actual number of posts
+.         g lntotactualposts = ln(ztotprovposts11 + ztotprovposts12)
+(50 missing values generated)
+
+.         
+.   
+.         ***********************
+.         * Regressions for Table 2, Panel A
+.         ***********************
+.         
+.         eststo: xi: bencgmreg lnzpostpayment lnmeantotprovposts11 i.postdir 
+> if zprovid == "12" & zroute == "M",  cluster1("post") cluster2(trid) numreal
+> vars(1) 
+i.postdir         _Ipostdir_1-496     (naturally coded; _Ipostdir_1 omitted)
+------------------------------------------------------------------------------
+lnzpostpay~t |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+lnmeantot~11 |  -.5555845   .1535027    -3.62   0.000    -.8564443   -.2547247
+------------------------------------------------------------------------------
+Cluster variables: post trid
+(est3 stored)
+
+.         
+.                 
+.                 
+.         eststo: xi: bencgmreg lnzpostpayment lnmeantotprovposts11 truckage t
+> ruckage2  zincludedCbesibekas zincludedCconstruction zincludedCfood zinclude
+> dCagprod zincludedCmanufac  ztruckovertons lnsal i.postdir if zprovid == "12
+> " & zroute == "M", cluster1("post") cluster2(trid) numrealvars(10) 
+i.postdir         _Ipostdir_1-496     (naturally coded; _Ipostdir_1 omitted)
+------------------------------------------------------------------------------
+lnzpostpay~t |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+lnmeantot~11 |  -.5880719   .1614535    -3.64   0.000    -.9045149   -.2716289
+    truckage |   .0030523   .0248389     0.12   0.902    -.0456311    .0517357
+   truckage2 |    .000442   .0017169     0.26   0.797    -.0029232    .0038071
+zincluded~as |   .1485044   .1306466     1.14   0.256    -.1075582     .404567
+zincludedC~n |  -.0355899   .0653533    -0.54   0.586      -.16368    .0925001
+zinclude~ood |   .0141906    .045035     0.32   0.753    -.0740764    .1024576
+zinclude~rod |   .0087713   .0999059     0.09   0.930    -.1870407    .2045833
+zincludedC~c |  -.1438289   .0642623    -2.24   0.025    -.2697806   -.0178772
+ztruckover~s |   .0051577   .0037672     1.37   0.171    -.0022259    .0125413
+       lnsal |   .0645431   .0447162     1.44   0.149    -.0230991    .1521853
+------------------------------------------------------------------------------
+Cluster variables: post trid
+(est4 stored)
+
+.         
+.         
+.         esttab using extension1.tex, label title(Regression table for 7 days
+>  and 20 days \label{tab1}) nonumbers mtitles("7 Days" "7 Days" "20 Days" "20
+>  Days"), replace
+invalid 'replace' 
+r(198);
+
+end of do-file
+
+r(198);
+
+. do "/var/folders/cz/22lkzq6s76d4j39wmlsf9r3c0000gn/T//SD12361.000000"
+
+.         esttab using extension1.tex, label title(Regression table for 7 days
+>  and 20 days \label{tab1}) nonumbers mtitles("7 Days" "7 Days" "20 Days" "20
+>  Days") replace
+(output written to extension1.tex)
+
+. 
+end of do-file
+
+. esttab
+
+----------------------------------------------------------------------------
+                      (1)             (2)             (3)             (4)   
+             lnzpostpay~t    lnzpostpay~t    lnzpostpay~t    lnzpostpay~t   
+----------------------------------------------------------------------------
+lnmeantot~11       -0.536***       -0.555***       -0.556***       -0.588***
+                  (-3.55)         (-3.49)         (-3.62)         (-3.64)   
+
+truckage                          0.00138                         0.00305   
+                                   (0.05)                          (0.12)   
+
+truckage2                        0.000511                        0.000442   
+                                   (0.28)                          (0.26)   
+
+zincluded~as                        0.140                           0.149   
+                                   (1.00)                          (1.14)   
+
+zincludedC~n                      -0.0296                         -0.0356   
+                                  (-0.43)                         (-0.54)   
+
+zinclude~ood                       0.0187                          0.0142   
+                                   (0.42)                          (0.32)   
+
+zinclude~rod                       0.0253                         0.00877   
+                                   (0.25)                          (0.09)   
+
+zincludedC~c                       -0.166*                         -0.144*  
+                                  (-2.41)                         (-2.24)   
+
+ztruckover~s                      0.00479                         0.00516   
+                                   (1.29)                          (1.37)   
+
+lnsal                              0.0560                          0.0645   
+                                   (1.29)                          (1.44)   
+----------------------------------------------------------------------------
+N                    1925            1704            1941            1720   
+----------------------------------------------------------------------------
+t statistics in parentheses
+* p<0.05, ** p<0.01, *** p<0.001
+
+. do "/var/folders/cz/22lkzq6s76d4j39wmlsf9r3c0000gn/T//SD12361.000000"
+
+.          label variable truckage "Truck Age"
+
+. 
+.      label variable truckage2 "Truck Age2"
+
+. 
+.     label variable lnzpostpayment "Log Payment"
+
+. 
+.      label variable lnmeantotprovposts11 "Expected Posts"
+
+. 
+.      label variable zincludedCbesibekas "Steel"
+
+. 
+.     label variable zincludedCconstruction "Construction Goods"
+
+. 
+.     label variable zincludedCfood "Food"
+
+. 
+.     label variable zincludedCagprod "Agricultural"
+
+. 
+.    label variable zincludedCmanufac "Manufactured"
+
+. 
+.   label variable ztruckovertons "Over Weight"
+
+. 
+.         esttab using extension1.tex, label title(Regression table for 7 days
+>  and 20 days \label{tab1}) nonumbers mtitles("7 Days" "7 Days" "20 Days" "20
+>  Days") replace
+(output written to extension1.tex)
+
+. 
+end of do-file
+
+. esttab clear
+estimation result clear not found
+r(111);
+
+. eststo clear
+
+. do "/var/folders/cz/22lkzq6s76d4j39wmlsf9r3c0000gn/T//SD12361.000000"
+
+.         eststo:xi: bencgmreg lnzpostpayment lntotactualposts i.postdir if zp
+> rovid == "12" & zroute == "M",  cluster1("post") cluster2(trid) numrealvars(
+> 1) 
+i.postdir         _Ipostdir_1-496     (naturally coded; _Ipostdir_1 omitted)
+------------------------------------------------------------------------------
+lnzpostpay~t |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+lntotactua~s |  -.4294615   .1355104    -3.17   0.002    -.6950571   -.1638659
+------------------------------------------------------------------------------
+Cluster variables: post trid
+(est1 stored)
+
+.         
+.                 
+.                 
+.         eststo: xi: bencgmreg lnzpostpayment lntotactualposts truckage truck
+> age2  zincludedCbesibekas zincludedCconstruction zincludedCfood zincludedCag
+> prod zincludedCmanufac  ztruckovertons lnsal i.postdir if zprovid == "12" & 
+> zroute == "M", cluster1("post") cluster2(trid) numrealvars(10)  
+i.postdir         _Ipostdir_1-496     (naturally coded; _Ipostdir_1 omitted)
+------------------------------------------------------------------------------
+lnzpostpay~t |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+lntotactua~s |  -.4355461   .1431858    -3.04   0.002    -.7161852   -.1549071
+    truckage |   -.005535   .0331512    -0.17   0.867    -.0705102    .0594401
+   truckage2 |   .0006029   .0024314     0.25   0.804    -.0041625    .0053683
+zincluded~as |   .0557278   .1693948     0.33   0.742    -.2762798    .3877355
+zincludedC~n |    .021743   .0724135     0.30   0.764    -.1201848    .1636708
+zinclude~ood |   .0696787   .0454597     1.53   0.125    -.0194206    .1587781
+zinclude~rod |   .1238169   .1009361     1.23   0.220    -.0740143     .321648
+zincludedC~c |  -.2069171   .0664257    -3.12   0.002     -.337109   -.0767251
+ztruckover~s |   .0064289   .0037178     1.73   0.084    -.0008577    .0137156
+       lnsal |   .0068171   .0506295     0.13   0.893    -.0924149    .1060491
+------------------------------------------------------------------------------
+Cluster variables: post trid
+(est2 stored)
+
+.         
+.         
+.         
+.         
+.         
+.         *****************
+.         * Regressions for Table 2, Panel B
+.         *****************
+.         
+.         * Create time series dataset
+.         tempfile temppostlevel
+
+.         save temppostlevel, replace
+file temppostlevel.dta saved
+
+.         save temp1,replace
+file temp1.dta saved
+
+.                 
+.         use temppostlevel,clear
+
+.         preserve
+
+.         bys trid: keep if _n == 1
+(7,219 observations deleted)
+
+.         keep ztripdate lntotactualposts lnztotallposts lnmeantotprovposts11 
+> lztroopsremain*11 truckage truckage2  zincludedCbesibekas zincludedCconstruc
+> tion zincludedCfood zincludedCagprod zincludedCmanufac  ztruckovertons lnsal
+>  trid zprovid zroute zroutetoaceh tripinterval       tripmonth
+
+.         tempfile info2
+
+.         save info2, replace
+file info2.dta saved
+
+.         restore
+
+.         
+.         use codedkabmerged,clear
+
+.         g zprovid = substr(zpostkabid,1,2)
+
+.         g totpaid = ztotkabpayment 
+(7 missing values generated)
+
+.         replace totpaid = ztotkabpayment + ztotkabjembpaid if ztotkabjembpai
+> d != .
+(497 real changes made)
+
+.         * Note that totpaid includes payments at checkpoints as well as at w
+> eigh stations
+.         
+.         * Collapse to the trip level
+.         collapse (sum) totpaid ztotkabposts ztotkabpayment ztotkabjembpaid, 
+> by(zprovid trid)
+
+.         fillin trid zprovid
+
+.         replace totpaid = 0 if totpaid == .
+(209 real changes made)
+
+.         
+.         mmerge trid using info2
+
+------------------------------------------------------------------------------
+> -
+merge specs          |
+       matching type | auto
+  mv's on match vars | none
+  unmatched obs from | both
+---------------------+--------------------------------------------------------
+> -
+  master        file | <data in memory not named>
+                 obs |    921
+                vars |      7
+          match vars | trid  (not a key)
+  -------------------+--------------------------------------------------------
+> -
+  using         file | info2.dta
+                 obs |    307
+                vars |     27
+          match vars | trid  (key)
+  -------------------+--------------------------------------------------------
+> -
+         common vars | zprovid
+---------------------+--------------------------------------------------------
+> -
+variable trid does not uniquely identify observations in the master data
+result          file | <data in memory not named>
+                 obs |    921
+                vars |     34  (including _merge)
+         ------------+--------------------------------------------------------
+> -
+              _merge |    921  obs both in master and using data      (code==3
+> )
+------------------------------------------------------------------------------
+> -
+
+.         
+.         
+.         g lntotpaid = ln(totpaid)
+(265 missing values generated)
+
+.         g lntotpaidcheckpoints = ln(ztotkabpayment)
+(290 missing values generated)
+
+.         egen groupvar = group(zprovid zroute)
+(3 missing values generated)
+
+.         
+.         ************************
+.         * generate a time-series variable for newey-west errors
+.         ************************
+.         sort groupvar ztripdate
+
+.         by groupvar: g tripnumber = _n
+
+.         tsset groupvar tripnumber
+       panel variable:  groupvar (unbalanced)
+        time variable:  tripnumber, 1 to 162
+                delta:  1 unit
+
+.         
+.                 
+.         * time series Regressions with actual post 
+.         
+.         local lags = 10
+
+.         
+.         eststo:newey2 lntotpaid lntotactualposts if zprovid == "12"  & zrout
+> e == "M", lag(`lags') force
+
+
+Regression with Newey-West standard errors          Number of obs  =       162
+maximum lag : 10                                    F(  1,   160)  =      6.84
+                                                    Prob > F       =    0.0098
+
+------------------------------------------------------------------------------
+             |             Newey-West
+   lntotpaid |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+lntotactua~s |  -.4239365   .1621267    -2.61   0.010    -.7441207   -.1037522
+       _cons |   13.10648   .5277856    24.83   0.000     12.06415     14.1488
+------------------------------------------------------------------------------
+(est3 stored)
+
+.         
+.         eststo:newey2 lntotpaid lntotactualposts truckage truckage2  zinclud
+> edCbesibekas zincludedCconstruction zincludedCfood zincludedCagprod zinclude
+> dCmanufac  ztruckovertons lnsal if zprovid == "12"  & zroute == "M", lag(`la
+> gs') force
+
+
+Regression with Newey-West standard errors          Number of obs  =       145
+maximum lag : 10                                    F( 10,   134)  =     12.92
+                                                    Prob > F       =    0.0000
+
+------------------------------------------------------------------------------
+             |             Newey-West
+   lntotpaid |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+lntotactua~s |  -.3704618   .1859561    -1.99   0.048    -.7382505    -.002673
+    truckage |   .1078681   .0646802     1.67   0.098     -.020058    .2357942
+   truckage2 |  -.0094975   .0050024    -1.90   0.060    -.0193914    .0003963
+zincludedC~s |   -.030458   .2642611    -0.12   0.908    -.5531204    .4922044
+zincludedC~n |   .1463043   .1321156     1.11   0.270    -.1149972    .4076059
+zinclude~ood |   .0522012   .1262967     0.41   0.680    -.1975916    .3019941
+zinclude~rod |   .1358864   .1750135     0.78   0.439    -.2102598    .4820325
+zincludedC~c |   .0778675   .1035257     0.75   0.453    -.1268884    .2826234
+ztruckover~s |   .0296581   .0080725     3.67   0.000     .0136922    .0456241
+       lnsal |  -.1330502   .1279958    -1.04   0.300    -.3862036    .1201031
+       _cons |   14.35612   1.557865     9.22   0.000     11.27494    17.43731
+------------------------------------------------------------------------------
+(est4 stored)
+
+.         
+.     esttab using extension2.tex, label title(Regression table for actual pos
+> ts \label{tab1}) nonumbers mtitles("Post Level" "Post Level" "Trip level" "T
+> rip level") replace 
+(note: file extension2.tex not found)
+(output written to extension2.tex)
+
+. 
+end of do-file
+
+. label variable lntotactualposts "Total Posts"
+
+. do "/var/folders/cz/22lkzq6s76d4j39wmlsf9r3c0000gn/T//SD12361.000000"
+
+.         label variable lntotactualposts "Total Posts"   
+
+.                 
+.         eststo: xi: bencgmreg lnzpostpayment lntotactualposts truckage truck
+> age2  zincludedCbesibekas zincludedCconstruction zincludedCfood zincludedCag
+> prod zincludedCmanufac  ztruckovertons lnsal i.postdir if zprovid == "12" & 
+> zroute == "M", cluster1("post") cluster2(trid) numrealvars(10)  
+variable postdir not found
+r(111);
+
+end of do-file
+
+r(111);
+
+. do "/var/folders/cz/22lkzq6s76d4j39wmlsf9r3c0000gn/T//SD12361.000000"
+
+.         label variable lntotactualposts "Total Posts"   
+
+.     esttab using extension2.tex, label title(Regression table for actual pos
+> ts \label{tab1}) nonumbers mtitles("Post Level" "Post Level" "Trip level" "T
+> rip level") replace 
+(output written to extension2.tex)
+
+. 
+end of do-file
+
+. eststo clear 
+
+. do "/var/folders/cz/22lkzq6s76d4j39wmlsf9r3c0000gn/T//SD12361.000000"
+
+. use codedkabmerged,clear                        
+
+.         ***************************
+.         * Code basic variables we need for analysis
+.         ***************************
+.         
+.         g tripinterval = round(ztripdate / 14) 
+(4 missing values generated)
+
+.         g tripmonth = year(ztripdate)*100+ month(ztripdate)
+(4 missing values generated)
+
+.         g BAroute = (zroute == "B") if zroute != ""
+(4 missing values generated)
+
+.         g ztroopstnispecialbripolB = ztroopstnispecialbripol*BAroute
+(4 missing values generated)
+
+.         g ztroopsremaintnispecialbripolB = ztroopsremaintnispecialbripol*BAr
+> oute
+(4 missing values generated)
+
+.         
+.         for var ztotkabpayment ztotkabposts : g lnX = ln(X)
+
+->  g lnztotkabpayment = ln(ztotkabpayment)
+(1,598 missing values generated)
+
+->  g lnztotkabposts = ln(ztotkabposts)
+(1,481 missing values generated)
+
+.         for var ztroopsremaintnispecialbripol : g lX = ln(X)
+
+->  g lztroopsremaintnispecialbripol = ln(ztroopsremaintnispecialbripol)
+(1,512 missing values generated)
+
+.         for var ztroopsremaintnispecialbripol : replace lX = 0 if substr(zpo
+> stkabid,1,2) == "12" /*since no data for sumatra this shoudl just be 0, not 
+> missing*/
+
+->  replace lztroopsremaintnispecialbripol = 0 if substr(zpostkabid,1,2) == `"
+> 12"'
+(1,413 real changes made)
+
+.         g lztroopsremaintnispecialbripolB = lztroopsremaintnispecialbripol*B
+> Aroute
+(103 missing values generated)
+
+.         
+. 
+.         tempfile temppremerge
+
+.         save temppremerge,replace
+file temppremerge.dta saved
+
+.                 
+.                 
+.         ********************
+.         * Post level analysis
+.         ********************
+.         
+.         * Merge in post level data
+.         mmerge trid zpostkabid using codedperpost, type(1:n) ukeep(zpost*)
+
+------------------------------------------------------------------------------
+> -
+merge specs          |
+       matching type | 1:n
+  mv's on match vars | none
+  unmatched obs from | both
+---------------------+--------------------------------------------------------
+> -
+  master        file | temppremerge.dta
+                 obs |   3124
+                vars |    127
+          match vars | trid zpostkabid  (key)
+  -------------------+--------------------------------------------------------
+> -
+  using         file | codedperpost.dta
+                 obs |   6045
+                vars |     13  (selection via udrop/ukeep)
+          match vars | trid zpostkabid  (not a key)
+---------------------+--------------------------------------------------------
+> -
+variables trid zpostkabid do not uniquely identify observations in
+    /var/folders/cz/22lkzq6s76d4j39wmlsf9r3c0000gn/T//S_12361.000003
+result          file | temppremerge.dta
+                 obs |   7526
+                vars |    140  (including _merge)
+         ------------+--------------------------------------------------------
+> -
+              _merge |   1481  obs only in master data                (code==1
+> )
+                     |   6045  obs both in master and using data      (code==3
+> )
+------------------------------------------------------------------------------
+> -
+
+.         
+.         * Make variable for payment at post
+.         g lnzpostpayment = ln(zpostpayment)
+(2,067 missing values generated)
+
+.         
+.         * Make post id, defined as unique of subdistrictid (zpostkecid) and 
+> which organization runs the post (zpostwhostops)
+.         egen postidkec = group(zpostkecid zpostwhostops )
+(1481 missing values generated)
+
+.         
+.         
+.         ***************
+.         * Clutsering / FE vars
+.         ***************
+.         capture drop postmonth
+
+.         capture drop postdirmonth
+
+.         egen postmonth = group(zpostkecid zpostwhostops tripmonth)
+(1511 missing values generated)
+
+.         egen postdirmonth = group(zpostkecid zpostwhostops tripmonth zroutet
+> oaceh)
+(1599 missing values generated)
+
+.         egen postdir = group(zpostkecid zpostwhostops zroutetoaceh zroute)
+(1599 missing values generated)
+
+.         egen post = group(zpostkecid zpostwhostops )
+(1481 missing values generated)
+
+.         
+.         tempfile temp2
+
+.         save temp2,replace              
+file temp2.dta saved
+
+.         
+.         ** Get aggregate variables from kab dataset above
+.         use temppremerge,clear
+
+.         g zprovid = substr(zpostkabid,1,2)
+
+.         
+.         collapse (sum) ztotkabposts ztroopsremaintnispecialbripol ztroopsrem
+> aintnispecialbripolB ztroopsremaintni ztroopsremaintnispecial ztroopsremainb
+> ri ztroopsremainpol ztroopsremainbkosamapta, by(trid zprovid)
+
+.         ren ztotkabposts ztotprovposts
+
+.         reshape wide ztotprovposts ztroopsremaintnispecialbripol ztroopsrema
+> intnispecialbripolB ztroopsremaintni ztroopsremaintnispecial ztroopsremainbr
+> i ztroopsremainpol ztroopsremainbkosamapta, i(trid) j(zprovid) string
+(note: j = 11 12 99)
+
+Data                               long   ->   wide
+-----------------------------------------------------------------------------
+Number of obs.                      712   ->     307
+Number of variables                  10   ->      25
+j variable (3 values)           zprovid   ->   (dropped)
+xij variables:
+                          ztotprovposts   ->   ztotprovposts11 ztotprovposts12
+>  ztotprovposts99
+          ztroopsremaintnispecialbripol   ->   ztroopsremaintnispecialbripol11
+>  ztroopsremaintnispecialbripol12 ztroopsremaintnispecialbripol99
+         ztroopsremaintnispecialbripolB   ->   ztroopsremaintnispecialbripolB1
+> 1 ztroopsremaintnispecialbripolB12 ztroopsremaintnispecialbripolB99
+                       ztroopsremaintni   ->   ztroopsremaintni11 ztroopsremai
+> ntni12 ztroopsremaintni99
+                ztroopsremaintnispecial   ->   ztroopsremaintnispecial11 ztroo
+> psremaintnispecial12 ztroopsremaintnispecial99
+                    ztroopsremainbrimob   ->   ztroopsremainbrimob11 ztroopsre
+> mainbrimob12 ztroopsremainbrimob99
+                       ztroopsremainpol   ->   ztroopsremainpol11 ztroopsremai
+> npol12 ztroopsremainpol99
+                ztroopsremainbkosamapta   ->   ztroopsremainbkosamapta11 ztroo
+> psremainbkosamapta12 ztroopsremainbkosamapta99
+-----------------------------------------------------------------------------
+
+.         sort trid
+
+.         tempfile postsfile
+
+.         save postsfile,replace
+file postsfile.dta saved
+
+.                 
+.         ** Go back to checkpoint level data and merge in
+.         use temp2
+
+.         
+.         mmerge trid using postsfile
+
+------------------------------------------------------------------------------
+> -
+merge specs          |
+       matching type | auto
+  mv's on match vars | none
+  unmatched obs from | both
+---------------------+--------------------------------------------------------
+> -
+  master        file | temp2.dta
+                 obs |   7526
+                vars |    144
+          match vars | trid  (not a key)
+  -------------------+--------------------------------------------------------
+> -
+  using         file | postsfile.dta
+                 obs |    307
+                vars |     25
+          match vars | trid  (key)
+---------------------+--------------------------------------------------------
+> -
+variable trid does not uniquely identify observations in the master data
+result          file | temp2.dta
+                 obs |   7526
+                vars |    170  (including _merge)
+         ------------+--------------------------------------------------------
+> -
+              _merge |   7526  obs both in master and using data      (code==3
+> )
+------------------------------------------------------------------------------
+> -
+
+.         g zprovid = substr(zpostkabid,1,2)
+
+.         egen tripintervalroute = group(tripinterval zroute)
+(30 missing values generated)
+
+.         
+.         
+.         
+.         for var ztroopsremaintnispecialbripol ztroopsremaintni ztroopsremain
+> tnispecial ztroopsremainbrimob ztroopsremainpol ztroopsremainbkosamapta : g 
+> lX11 = ln(X11)
+
+->  g lztroopsremaintnispecialbripol11 = ln(ztroopsremaintnispecialbripol11)
+
+->  g lztroopsremaintni11 = ln(ztroopsremaintni11)
+(5,516 missing values generated)
+
+->  g lztroopsremaintnispecial11 = ln(ztroopsremaintnispecial11)
+(6,436 missing values generated)
+
+->  g lztroopsremainbrimob11 = ln(ztroopsremainbrimob11)
+(5,328 missing values generated)
+
+->  g lztroopsremainpol11 = ln(ztroopsremainpol11)
+
+->  g lztroopsremainbkosamapta11 = ln(ztroopsremainbkosamapta11)
+(7,008 missing values generated)
+
+.         
+.         g lztroopsremain11 = ln(ztroopsremaintnispecialbripol11)        
+
+.         
+.         g lztroopsremainB11 = lztroopsremain11 * BA
+(30 missing values generated)
+
+.         
+.         
+.         
+.         ****************
+.         * include some control vars
+.         ****************
+.         g truckage = 2006 - ztruckyear
+(114 missing values generated)
+
+.         g truckage2 = truckage^2
+(114 missing values generated)
+
+.         g lnsal = ln(zdrivermonthlysalary)
+(970 missing values generated)
+
+.         g ztruckovertons = max(ztruckweight - ztruckmaxweight,0)
+
+.                 
+.         capture drop tf* ztotkab*
+
+.         capture drop typenum* withdrawal* number*       
+
+.         local postlevelcluster = "post" /*what variable to cluster on for po
+> st level regresions*/
+
+. 
+. 
+.         * Create a posts variable by adding banda aceh posts to mean number 
+> of north sumatra posts over entire sample for each route
+.         bys zroute: egen meanpostsnorthsumatra12 = mean(ztotprovposts12)
+(30 missing values generated)
+
+.         g lnztotallposts = ln(ztotprovposts11+meanpostsnorthsumatra12 )
+(30 missing values generated)
+
+.         
+.         * Create expected total posts variable, where we calculate a drivers
+> ' expectation of how many posts they would face in aceh based on comparable 
+> trips
+.         
+.         preserve
+
+.                 bys trid: keep if _n == 1
+(7,219 observations deleted)
+
+.                 bys tripinterval zroute: egen tempsumpostsaceh = sum(ztotpro
+> vposts11)
+
+.                 bys tripinterval zroute: egen tempcountpostsaceh = count(zto
+> tprovposts11)
+
+.                 g temppredpostsaceh = (tempsumpostsaceh - ztotprovposts11) /
+>  (tempcountpostsaceh - 1)
+(2 missing values generated)
+
+.                 capture drop meanpostsnorthsumatra12 
+
+.                 bys zroute: egen meanpostsnorthsumatra12 = mean(ztotprovpost
+> s12)
+(1 missing value generated)
+
+.                 
+.                 g lnmeantotprovposts11  = ln(temppredpostsaceh + meanpostsno
+> rthsumatra12 )
+(2 missing values generated)
+
+.                 tempfile tempposts11
+
+.                 keep trid lnmeantotprovposts11  
+
+.                 save tempposts11, replace
+file tempposts11.dta saved
+
+.         restore
+
+.         mmerge trid using tempposts11, type(n:1)
+
+------------------------------------------------------------------------------
+> -
+merge specs          |
+       matching type | n:1
+  mv's on match vars | none
+  unmatched obs from | both
+---------------------+--------------------------------------------------------
+> -
+  master        file | temp2.dta
+                 obs |   7526
+                vars |    184
+          match vars | trid  (not a key)
+  -------------------+--------------------------------------------------------
+> -
+  using         file | tempposts11.dta
+                 obs |    307
+                vars |      2
+          match vars | trid  (key)
+---------------------+--------------------------------------------------------
+> -
+variable trid does not uniquely identify observations in the master data
+result          file | temp2.dta
+                 obs |   7526
+                vars |    187  (including _merge)
+         ------------+--------------------------------------------------------
+> -
+              _merge |   7526  obs both in master and using data      (code==3
+> )
+------------------------------------------------------------------------------
+> -
+
+.         assert _merge == 3
+
+.         drop _merge
+
+. 
+.         capture drop t?
+
+.         
+.         * Create cubic in time
+.         g t1 = ztripdate-mdy(1,1,2005)
+(30 missing values generated)
+
+.         g t2 = t1^2
+(30 missing values generated)
+
+.         g t3 = t1^3
+(30 missing values generated)
+
+.         
+.         * Create the log actual number of posts
+.         g lntotactualposts = ln(ztotprovposts11 + ztotprovposts12)
+(50 missing values generated)
+
+. *********** post level analysis 
+. eststo:xi: bencgmreg lnzpostpayment lntotactualposts i.postdir if zprovid ==
+>  "11" & zroute == "M",  cluster1("post") cluster2(trid) numrealvars(1) 
+i.postdir         _Ipostdir_1-496     (naturally coded; _Ipostdir_1 omitted)
+------------------------------------------------------------------------------
+lnzpostpay~t |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+lntotactua~s |   .0487495   .0863734     0.56   0.572    -.1205393    .2180383
+------------------------------------------------------------------------------
+Cluster variables: post trid
+(est1 stored)
+
+. eststo:xi: bencgmreg lnzpostpayment lntotactualposts truckage truckage2  zin
+> cludedCbesibekas zincludedCconstruction zincludedCfood zincludedCagprod zinc
+> ludedCmanufac  ztruckovertons lnsal i.postdir if zprovid == "11" & zroute ==
+>  "M", cluster1("post") cluster2(trid) numrealvars(10) 
+i.postdir         _Ipostdir_1-496     (naturally coded; _Ipostdir_1 omitted)
+------------------------------------------------------------------------------
+lnzpostpay~t |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+lntotactua~s |   .0639465   .0858781     0.74   0.457    -.1043715    .2322645
+    truckage |   .0748782   .0309072     2.42   0.015     .0143013    .1354552
+   truckage2 |  -.0032865   .0021657    -1.52   0.129    -.0075313    .0009582
+zincluded~as |   .2213971    .109524     2.02   0.043     .0067341    .4360601
+zincludedC~n |  -.0218645   .0509034    -0.43   0.668    -.1216334    .0779043
+zinclude~ood |   .0780193    .050148     1.56   0.120    -.0202689    .1763076
+zinclude~rod |   .1929155   .0628381     3.07   0.002      .069755     .316076
+zincludedC~c |   .0671294   .0442848     1.52   0.130    -.0196672     .153926
+ztruckover~s |   .0011267   .0040298     0.28   0.780    -.0067717     .009025
+       lnsal |    .112104   .0327348     3.42   0.001     .0479449    .1762631
+------------------------------------------------------------------------------
+Cluster variables: post trid
+(est2 stored)
+
+. 
+. 
+. ************* time series 
+. * Create time series dataset
+.         tempfile temppostlevel
+
+.         save temppostlevel, replace
+file temppostlevel.dta saved
+
+.         save temp1,replace
+file temp1.dta saved
+
+.                 
+.         use temppostlevel,clear
+
+.         preserve
+
+.         bys trid: keep if _n == 1
+(7,219 observations deleted)
+
+.         keep ztripdate lntotactualposts lnztotallposts lnmeantotprovposts11 
+> lztroopsremain*11 truckage truckage2  zincludedCbesibekas zincludedCconstruc
+> tion zincludedCfood zincludedCagprod zincludedCmanufac  ztruckovertons lnsal
+>  trid zprovid zroute zroutetoaceh tripinterval       tripmonth
+
+.         tempfile info2
+
+.         save info2, replace
+file info2.dta saved
+
+.         restore
+
+.         
+.         use codedkabmerged,clear
+
+.         g zprovid = substr(zpostkabid,1,2)
+
+.         g totpaid = ztotkabpayment 
+(7 missing values generated)
+
+.         replace totpaid = ztotkabpayment + ztotkabjembpaid if ztotkabjembpai
+> d != .
+(497 real changes made)
+
+.         * Note that totpaid includes payments at checkpoints as well as at w
+> eigh stations
+.         
+.         * Collapse to the trip level
+.         collapse (sum) totpaid ztotkabposts ztotkabpayment ztotkabjembpaid, 
+> by(zprovid trid)
+
+.         fillin trid zprovid
+
+.         replace totpaid = 0 if totpaid == .
+(209 real changes made)
+
+.         
+.         mmerge trid using info2
+
+------------------------------------------------------------------------------
+> -
+merge specs          |
+       matching type | auto
+  mv's on match vars | none
+  unmatched obs from | both
+---------------------+--------------------------------------------------------
+> -
+  master        file | <data in memory not named>
+                 obs |    921
+                vars |      7
+          match vars | trid  (not a key)
+  -------------------+--------------------------------------------------------
+> -
+  using         file | info2.dta
+                 obs |    307
+                vars |     27
+          match vars | trid  (key)
+  -------------------+--------------------------------------------------------
+> -
+         common vars | zprovid
+---------------------+--------------------------------------------------------
+> -
+variable trid does not uniquely identify observations in the master data
+result          file | <data in memory not named>
+                 obs |    921
+                vars |     34  (including _merge)
+         ------------+--------------------------------------------------------
+> -
+              _merge |    921  obs both in master and using data      (code==3
+> )
+------------------------------------------------------------------------------
+> -
+
+.         
+.         
+.         g lntotpaid = ln(totpaid)
+(265 missing values generated)
+
+.         g lntotpaidcheckpoints = ln(ztotkabpayment)
+(290 missing values generated)
+
+.         egen groupvar = group(zprovid zroute)
+(3 missing values generated)
+
+.         
+.         ************************
+.         * generate a time-series variable for newey-west errors
+.         ************************
+.         sort groupvar ztripdate
+
+.         by groupvar: g tripnumber = _n
+
+.         tsset groupvar tripnumber
+       panel variable:  groupvar (unbalanced)
+        time variable:  tripnumber, 1 to 162
+                delta:  1 unit
+
+.         
+.         *****regression
+.         local lags=10
+
+.         eststo:newey2 lntotpaid lntotactualposts if zprovid == "11"  & zrout
+> e == "M", lag(`lags') force
+
+
+Regression with Newey-West standard errors          Number of obs  =       158
+maximum lag : 10                                    F(  1,   156)  =    471.99
+                                                    Prob > F       =    0.0000
+
+------------------------------------------------------------------------------
+             |             Newey-West
+   lntotpaid |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+lntotactua~s |   2.088844   .0961481    21.73   0.000     1.898923    2.278764
+       _cons |   4.491269   .3266966    13.75   0.000     3.845949    5.136589
+------------------------------------------------------------------------------
+(est3 stored)
+
+.         eststo:newey2 lntotpaid lntotactualposts truckage truckage2  zinclud
+> edCbesibekas zincludedCconstruction zincludedCfood zincludedCagprod zinclude
+> dCmanufac  ztruckovertons lnsal if zprovid == "11"  & zroute == "M", lag(`la
+> gs') force
+
+
+Regression with Newey-West standard errors          Number of obs  =       141
+maximum lag : 10                                    F( 10,   130)  =     67.46
+                                                    Prob > F       =    0.0000
+
+------------------------------------------------------------------------------
+             |             Newey-West
+   lntotpaid |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+lntotactua~s |   2.090651   .1107288    18.88   0.000     1.871588    2.309715
+    truckage |   .1045116   .0462937     2.26   0.026     .0129251    .1960981
+   truckage2 |   -.006792   .0035879    -1.89   0.061    -.0138902    .0003062
+zincludedC~s |   .1919481   .2549302     0.75   0.453    -.3124009    .6962971
+zincludedC~n |   -.031294    .097947    -0.32   0.750    -.2250704    .1624824
+zinclude~ood |    .141912   .1119929     1.27   0.207    -.0796527    .3634766
+zinclude~rod |   .3784743   .1673111     2.26   0.025     .0474693    .7094792
+zincludedC~c |   .0178826   .1387351     0.13   0.898    -.2565882    .2923533
+ztruckover~s |  -.0167782   .0081318    -2.06   0.041     -.032866   -.0006904
+       lnsal |   .1300382   .0686459     1.89   0.060    -.0057695    .2658459
+       _cons |    2.12666   1.037425     2.05   0.042     .0742401    4.179081
+------------------------------------------------------------------------------
+(est4 stored)
+
+. 
+.         label variable lntotactualposts "Total Posts"   
+
+.     esttab using extension3.tex, label title(Regression table for Aceh \labe
+> l{tab1}) nonumbers mtitles("Post Level" "Post Level" "Trip level" "Trip leve
+> l") replace 
+(note: file extension3.tex not found)
+(output written to extension3.tex)
+
+. 
+end of do-file
+
+. do "/var/folders/cz/22lkzq6s76d4j39wmlsf9r3c0000gn/T//SD12361.000000"
+
+.   label variable ztruckovertons "Over Weight"
+
+.         label variable lntotactualposts "Total Posts"   
+
+.     esttab using extension3.tex, label title(Regression table for Aceh \labe
+> l{tab1}) nonumbers mtitles("Post Level" "Post Level" "Trip level" "Trip leve
+> l") replace 
+(output written to extension3.tex)
+
+. 
+end of do-file
+
+. do "/var/folders/cz/22lkzq6s76d4j39wmlsf9r3c0000gn/T//SD12361.000000"
+
+.         label variable truckage "Truck Age"
+
+. 
+.      label variable truckage2 "Truck Age2"
+
+. 
+.     label variable lnzpostpayment "Log Payment"
+variable lnzpostpayment not found
+r(111);
+
+end of do-file
+
+r(111);
+
+. do "/var/folders/cz/22lkzq6s76d4j39wmlsf9r3c0000gn/T//SD12361.000000"
+
+.         label variable truckage "Truck Age"
+
+. 
+.      label variable truckage2 "Truck Age2"
+
+. 
+. 
+.      label variable lnmeantotprovposts11 "Expected Posts"
+
+. 
+.      label variable zincludedCbesibekas "Steel"
+
+. 
+.     label variable zincludedCconstruction "Construction Goods"
+
+. 
+.     label variable zincludedCfood "Food"
+
+. 
+.     label variable zincludedCagprod "Agricultural"
+
+. 
+.    label variable zincludedCmanufac "Manufactured"
+
+. 
+.   label variable ztruckovertons "Over Weight"
+
+.         label variable lntotactualposts "Total Posts"   
+
+.     esttab using extension3.tex, label title(Regression table for Aceh \labe
+> l{tab1}) nonumbers mtitles("Post Level" "Post Level" "Trip level" "Trip leve
+> l") replace 
+(output written to extension3.tex)
+
+. 
+end of do-file
+
+. do "/var/folders/cz/22lkzq6s76d4j39wmlsf9r3c0000gn/T//SD12361.000000"
+
+. use codedkabmerged,clear
+
+.         
+.         g ztruckovertons = max(ztruckweight - ztruckmaxweight,0)
+
+.         g ztruckoverweight = 1 if ztruckovertons > 0 & ztruckovertons != .
+(491 missing values generated)
+
+.         replace ztruckoverweight = 0 if ztruckovertons  == 0
+(491 real changes made)
+
+.         
+.         keep if ztotkabjembtotal >= 1 & ztotkabjembtotal != .
+(2,518 observations deleted)
+
+.         
+.         * drop isolated jemb's  / coding errors -- these are locations where
+>  there should be no weigh station
+.         drop if zpostkabid == "1105"
+(1 observation deleted)
+
+.         drop if zpostkabid == "1209"
+(2 observations deleted)
+
+.         drop if zpostkabid == "1212"
+(2 observations deleted)
+
+.         drop if zpostkabid == "1275"
+(1 observation deleted)
+
+.         drop if zpostkabid == "1273"
+(2 observations deleted)
+
+.         tab zpostkabid
+
+District ID |      Freq.     Percent        Cum.
+------------+-----------------------------------
+       1114 |        136       22.74       22.74
+       1210 |        161       26.92       49.67
+       1211 |        159       26.59       76.25
+       1213 |        142       23.75      100.00
+------------+-----------------------------------
+      Total |        598      100.00
+
+.         assert r(r) == 4 /*check only 4 weigh stations*/
+
+.         
+.         /*drop mel trucks that go on the aceh route, since these are also er
+> rors*/
+.         drop if zroute == "M" & (zpostkabid == "1114" | zpostkabid == "1213"
+> )
+(0 observations deleted)
+
+.         
+.         g paidjembasa = ztotkabjembpaid + zusedasaamt
+(39 missing values generated)
+
+.         g convoyasa = (zusedasa | ztruckconvoy) if ztruckconvoy != . & zused
+> asa != .
+
+.         
+. 
+.         
+.         label var asa1 "Coupon"
+variable asa1 not found
+r(111);
+
+end of do-file
+
+r(111);
+
+. do "/var/folders/cz/22lkzq6s76d4j39wmlsf9r3c0000gn/T//SD12361.000000"
+
+. use codedkabmerged,clear
+
+. 
+end of do-file
+
+. do "/var/folders/cz/22lkzq6s76d4j39wmlsf9r3c0000gn/T//SD12361.000000"
+
+.         g ztruckovertons = max(ztruckweight - ztruckmaxweight,0)
+
+.         g ztruckoverweight = 1 if ztruckovertons > 0 & ztruckovertons != .
+(491 missing values generated)
+
+.         replace ztruckoverweight = 0 if ztruckovertons  == 0
+(491 real changes made)
+
+.         
+.         keep if ztotkabjembtotal >= 1 & ztotkabjembtotal != .
+(2,518 observations deleted)
+
+.         
+.         * drop isolated jemb's  / coding errors -- these are locations where
+>  there should be no weigh station
+.         drop if zpostkabid == "1105"
+(1 observation deleted)
+
+.         drop if zpostkabid == "1209"
+(2 observations deleted)
+
+.         drop if zpostkabid == "1212"
+(2 observations deleted)
+
+.         drop if zpostkabid == "1275"
+(1 observation deleted)
+
+.         drop if zpostkabid == "1273"
+(2 observations deleted)
+
+.         tab zpostkabid
+
+District ID |      Freq.     Percent        Cum.
+------------+-----------------------------------
+       1114 |        136       22.74       22.74
+       1210 |        161       26.92       49.67
+       1211 |        159       26.59       76.25
+       1213 |        142       23.75      100.00
+------------+-----------------------------------
+      Total |        598      100.00
+
+.         assert r(r) == 4 /*check only 4 weigh stations*/
+
+.         
+.         /*drop mel trucks that go on the aceh route, since these are also er
+> rors*/
+.         drop if zroute == "M" & (zpostkabid == "1114" | zpostkabid == "1213"
+> )
+(0 observations deleted)
+
+.         
+.         g paidjembasa = ztotkabjembpaid + zusedasaamt
+(39 missing values generated)
+
+.         g convoyasa = (zusedasa | ztruckconvoy) if ztruckconvoy != . & zused
+> asa != .
+
+. 
+end of do-file
+
+. do "/var/folders/cz/22lkzq6s76d4j39wmlsf9r3c0000gn/T//SD12361.000000"
+
+.         drop if substr(trid,1,3) == "M03"
+(105 observations deleted)
+
+.         /**XXXsurveyor M03 did not record ASA informationXX*/
+.         g lnzdrivermonthly = ln(zdrivermonthlysalary)
+(71 missing values generated)
+
+. 
+end of do-file
+
+. do "/var/folders/cz/22lkzq6s76d4j39wmlsf9r3c0000gn/T//SD12361.000000"
+
+.     reg zexpA ztruckovertons  
+
+      Source |       SS           df       MS      Number of obs   =       493
+-------------+----------------------------------   F(1, 491)       =     31.39
+       Model |  6.2849e+12         1  6.2849e+12   Prob > F        =    0.0000
+    Residual |  9.8298e+13       491  2.0020e+11   R-squared       =    0.0601
+-------------+----------------------------------   Adj R-squared   =    0.0582
+       Total |  1.0458e+14       492  2.1257e+11   Root MSE        =    4.5e+0
+> 5
+
+------------------------------------------------------------------------------
+       zexpA |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ztruckover~s |   17014.52   3036.694     5.60   0.000        11048    22981.03
+       _cons |    1425771   32633.51    43.69   0.000      1361653     1489890
+------------------------------------------------------------------------------
+
+.         reg zusedasa zdriveryearsexp zexpA  if  zpostkabid == "1213" & zrout
+> etoaceh == 1 & ztruckovertons < 30, robust          
+
+Linear regression                               Number of obs     =         59
+                                                F(2, 56)          =       5.04
+                                                Prob > F          =     0.0097
+                                                R-squared         =     0.0720
+                                                Root MSE          =     .49376
+
+------------------------------------------------------------------------------
+             |               Robust
+    zusedasa |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+zdriveryea~p |  -.0091982   .0029066    -3.16   0.003    -.0150208   -.0033756
+       zexpA |   9.39e-08   1.13e-07     0.83   0.409    -1.32e-07    3.20e-07
+       _cons |   .4935313   .1994119     2.47   0.016     .0940612    .8930013
+------------------------------------------------------------------------------
+
+. 
+end of do-file
+
+. eststo clear 
+
+. do "/var/folders/cz/22lkzq6s76d4j39wmlsf9r3c0000gn/T//SD12361.000000"
+
+.         use codedperpost,clear
+(Seksi TF. Transfer)
+
+.                 sort trid
+
+.                 merge trid using codedtripinfo, uniqusing
+(note: you are using old merge syntax; see [D] merge for new syntax)
+variable trid does not uniquely identify observations in the master data
+
+.                 drop _merge
+
+.                         
+.                 
+.                 ***********
+.                 * These are fe / clustering vars
+.                 ***********
+.                 g tripmy = string(year(ztripdate)) + string(month(ztripdate)
+> ,"%02.0f")
+
+.                 egen postdirmonth = group(zpostwhostops zpostkec zroute zrou
+> tetoaceh tripmy)
+(120 missing values generated)
+
+.                 egen post = group(zpostwhostops zpostkec)
+(2 missing values generated)
+
+.                 
+.                 g ztruckovertons = max(ztruckweight - ztruckmaxweight,0)
+
+.                 g ztruckoverweight = 1 if ztruckovertons > 0 & ztruckoverton
+> s != .
+(982 missing values generated)
+
+.                 replace ztruckoverweight = 0 if ztruckovertons  == 0
+(982 real changes made)
+
+.                 
+.                 g lnpayment = ln(zpostpayment) 
+(588 missing values generated)
+
+.                 g lntrips = ln(zdrivertrips) 
+(170 missing values generated)
+
+.                 g lnsal = ln(zdrivermonthlysalary)
+(771 missing values generated)
+
+.                 
+.                 
+.                 replace ztruckyear = 1990 if ztruckyear < 1990 /*one guy is 
+> 1977 so dont' want outlier to drive analysis*/
+(34 real changes made)
+
+.                 
+.                 g truckage = 2006 - ztruckyear
+(97 missing values generated)
+
+.                 g truckage2 = truckage^2
+(97 missing values generated)
+
+.                 
+.                 g ztruckcargoweight = ztruckweight - ztruckemptyweight
+(249 missing values generated)
+
+.                 g ztruckvalperweight = ztruckcargovalue / ztruckcargoweight
+(3,355 missing values generated)
+
+.                 g lnztruckvalperweight = ln(ztruckvalperweight)
+(3,531 missing values generated)
+
+.                 
+.                 
+.                 * Calculate guns and people in subsequent post
+.                 
+.                 encode trid,g(tripnum)
+
+.                 
+.                 tsset tripnum zpostnumwithintrip 
+       panel variable:  tripnum (unbalanced)
+        time variable:  zpostnumwit~p, 1 to 62
+                delta:  1 unit
+
+.                 g gunafter = f.zpostgun
+(395 missing values generated)
+
+.                 g pplafter = f.zpostnumppl
+(342 missing values generated)
+
+.                 
+.                 
+.                 
+.                 *************************************
+.                 * Bargaining and price discrimination
+.                 *************************************
+. 
+.                 
+. ************** Our extension
+. eststo:xi: areg lnpay zpostgun zpostnumppl zdriveredyears zdriveryearsexp i.
+> trid , absorb(postdirmonth) cluster(post) 
+i.trid            _Itrid_1-307        (_Itrid_1 for trid==B01030106 omitted)
+note: _Itrid_7 omitted because of collinearity
+note: _Itrid_23 omitted because of collinearity
+note: _Itrid_116 omitted because of collinearity
+note: _Itrid_134 omitted because of collinearity
+note: _Itrid_142 omitted because of collinearity
+note: _Itrid_177 omitted because of collinearity
+note: _Itrid_211 omitted because of collinearity
+note: _Itrid_253 omitted because of collinearity
+note: _Itrid_254 omitted because of collinearity
+note: _Itrid_278 omitted because of collinearity
+note: _Itrid_304 omitted because of collinearity
+note: _Itrid_306 omitted because of collinearity
+note: _Itrid_2 omitted because of collinearity
+note: _Itrid_3 omitted because of collinearity
+note: _Itrid_13 omitted because of collinearity
+note: _Itrid_17 omitted because of collinearity
+note: _Itrid_24 omitted because of collinearity
+note: _Itrid_30 omitted because of collinearity
+note: _Itrid_32 omitted because of collinearity
+note: _Itrid_34 omitted because of collinearity
+note: _Itrid_37 omitted because of collinearity
+note: _Itrid_42 omitted because of collinearity
+note: _Itrid_45 omitted because of collinearity
+note: _Itrid_49 omitted because of collinearity
+note: _Itrid_54 omitted because of collinearity
+note: _Itrid_64 omitted because of collinearity
+note: _Itrid_65 omitted because of collinearity
+note: _Itrid_67 omitted because of collinearity
+note: _Itrid_68 omitted because of collinearity
+note: _Itrid_73 omitted because of collinearity
+note: _Itrid_80 omitted because of collinearity
+note: _Itrid_81 omitted because of collinearity
+note: _Itrid_84 omitted because of collinearity
+note: _Itrid_85 omitted because of collinearity
+note: _Itrid_86 omitted because of collinearity
+note: _Itrid_93 omitted because of collinearity
+note: _Itrid_97 omitted because of collinearity
+note: _Itrid_98 omitted because of collinearity
+note: _Itrid_99 omitted because of collinearity
+note: _Itrid_104 omitted because of collinearity
+note: _Itrid_141 omitted because of collinearity
+note: _Itrid_143 omitted because of collinearity
+note: _Itrid_156 omitted because of collinearity
+note: _Itrid_168 omitted because of collinearity
+note: _Itrid_169 omitted because of collinearity
+note: _Itrid_180 omitted because of collinearity
+note: _Itrid_188 omitted because of collinearity
+note: _Itrid_195 omitted because of collinearity
+note: _Itrid_201 omitted because of collinearity
+note: _Itrid_202 omitted because of collinearity
+note: _Itrid_208 omitted because of collinearity
+note: _Itrid_209 omitted because of collinearity
+note: _Itrid_212 omitted because of collinearity
+note: _Itrid_221 omitted because of collinearity
+note: _Itrid_225 omitted because of collinearity
+note: _Itrid_227 omitted because of collinearity
+note: _Itrid_243 omitted because of collinearity
+note: _Itrid_244 omitted because of collinearity
+note: _Itrid_245 omitted because of collinearity
+note: _Itrid_261 omitted because of collinearity
+note: _Itrid_267 omitted because of collinearity
+note: _Itrid_279 omitted because of collinearity
+note: _Itrid_281 omitted because of collinearity
+note: _Itrid_285 omitted because of collinearity
+note: _Itrid_288 omitted because of collinearity
+note: _Itrid_290 omitted because of collinearity
+note: _Itrid_293 omitted because of collinearity
+note: _Itrid_307 omitted because of collinearity
+
+Linear regression, absorbing indicators         Number of obs     =      5,120
+                                                F( 142,    275)   =          .
+                                                Prob > F          =          .
+                                                R-squared         =     0.8125
+                                                Adj R-squared     =     0.7251
+                                                Root MSE          =     0.4605
+
+                                 (Std. Err. adjusted for 276 clusters in post)
+------------------------------------------------------------------------------
+             |               Robust
+   lnpayment |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+    zpostgun |   .1641486   .0647433     2.54   0.012     .0366932     .291604
+ zpostnumppl |   .0455172   .0105577     4.31   0.000      .024733    .0663014
+zdriveredy~s |  -.0565557    .018204    -3.11   0.002    -.0923925   -.0207189
+zdriveryea~p |   -.011152    .007913    -1.41   0.160    -.0267298    .0044258
+    _Itrid_2 |          0  (omitted)
+    _Itrid_3 |          0  (omitted)
+    _Itrid_4 |  -1.139975   .4038218    -2.82   0.005     -1.93495   -.3450007
+    _Itrid_5 |   .6037929   .6579371     0.92   0.360    -.6914405    1.899026
+    _Itrid_6 |    1.66802   .0714447    23.35   0.000     1.527372    1.808668
+    _Itrid_7 |          0  (omitted)
+    _Itrid_8 |   .9626626   .4096894     2.35   0.019     .1561366    1.769189
+    _Itrid_9 |   .5323974   .3830213     1.39   0.166     -.221629    1.286424
+   _Itrid_10 |   .3873053   .0803613     4.82   0.000     .2291039    .5455068
+   _Itrid_11 |  -.1731879   .0699935    -2.47   0.014    -.3109791   -.0353968
+   _Itrid_12 |   .5148593   .6284459     0.82   0.413    -.7223167    1.752035
+   _Itrid_13 |          0  (omitted)
+   _Itrid_14 |   .4567088   .4053954     1.13   0.261    -.3413638    1.254781
+   _Itrid_15 |   .6241671   .6986107     0.89   0.372    -.7511373    1.999472
+   _Itrid_16 |   1.058715   .5549791     1.91   0.057    -.0338319    2.151263
+   _Itrid_17 |          0  (omitted)
+   _Itrid_18 |  -.6833022    .569163    -1.20   0.231    -1.803772    .4371681
+   _Itrid_19 |   .8072416   .4951758     1.63   0.104    -.1675753    1.782059
+   _Itrid_20 |  -.3329529   1.085846    -0.31   0.759     -2.47058    1.804674
+   _Itrid_21 |  -.0528262   .4320593    -0.12   0.903    -.9033902    .7977378
+   _Itrid_22 |   .7272169   .7395575     0.98   0.326    -.7286966     2.18313
+   _Itrid_23 |          0  (omitted)
+   _Itrid_24 |          0  (omitted)
+   _Itrid_25 |   1.142177   .3917912     2.92   0.004     .3708863    1.913468
+   _Itrid_26 |   .7723834   .6946035     1.11   0.267    -.5950324    2.139799
+   _Itrid_27 |   .2329459   .3511036     0.66   0.508    -.4582464    .9241382
+   _Itrid_28 |   .2005276   .2561026     0.78   0.434    -.3036431    .7046983
+   _Itrid_29 |  -.5029055    .228278    -2.20   0.028    -.9522999    -.053511
+   _Itrid_30 |          0  (omitted)
+   _Itrid_31 |  -1.211798   .4939449    -2.45   0.015    -2.184192   -.2394046
+   _Itrid_32 |          0  (omitted)
+   _Itrid_33 |    .221497   .3011627     0.74   0.463    -.3713803    .8143744
+   _Itrid_34 |          0  (omitted)
+   _Itrid_35 |  -.6877037   .8105939    -0.85   0.397    -2.283462    .9080541
+   _Itrid_36 |  -.4606255   .5749563    -0.80   0.424    -1.592501    .6712495
+   _Itrid_37 |          0  (omitted)
+   _Itrid_38 |  -.1523847   .1994286    -0.76   0.445    -.5449854     .240216
+   _Itrid_39 |    .000083   3.02e-12  2.8e+07   0.000      .000083     .000083
+   _Itrid_40 |  -.7457126   .4990935    -1.49   0.136    -1.728242    .2368168
+   _Itrid_41 |   .6703285   .1902562     3.52   0.000     .2957848    1.044872
+   _Itrid_42 |          0  (omitted)
+   _Itrid_43 |  -.9823447   .3194299    -3.08   0.002    -1.611183   -.3535062
+   _Itrid_44 |  -.1104327   .3990713    -0.28   0.782    -.8960556    .6751901
+   _Itrid_45 |          0  (omitted)
+   _Itrid_46 |  -.8347513   .1689485    -4.94   0.000    -1.167348   -.5021546
+   _Itrid_47 |   .0816546   .6816017     0.12   0.905    -1.260166    1.423475
+   _Itrid_48 |   .0477562    .342918     0.14   0.889    -.6273217    .7228341
+   _Itrid_49 |          0  (omitted)
+   _Itrid_50 |   .3191277   .1357912     2.35   0.019     .0518054    .5864499
+   _Itrid_51 |  -.9247094   .4616675    -2.00   0.046    -1.833561   -.0158578
+   _Itrid_52 |   .9302892   .0593822    15.67   0.000     .8133877    1.047191
+   _Itrid_53 |  -.4100893   .3676079    -1.12   0.266    -1.133772    .3135939
+   _Itrid_54 |          0  (omitted)
+   _Itrid_55 |  -.4701273   .1884298    -2.49   0.013    -.8410755   -.0991791
+   _Itrid_56 |  -.6491638   .2437461    -2.66   0.008    -1.129009   -.1693184
+   _Itrid_57 |   .1590177   .3779874     0.42   0.674    -.5850988    .9031342
+   _Itrid_58 |   -.279764   .4867828    -0.57   0.566    -1.238058    .6785302
+   _Itrid_59 |   .2586081   .0641034     4.03   0.000     .1324124    .3848039
+   _Itrid_60 |  -.2235976   .3557364    -0.63   0.530    -.9239102     .476715
+   _Itrid_61 |  -.6020104   .8326255    -0.72   0.470     -2.24114    1.037119
+   _Itrid_62 |  -1.099062   .5364318    -2.05   0.041    -2.155097   -.0430275
+   _Itrid_63 |   -.717584   .1732291    -4.14   0.000    -1.058608   -.3765604
+   _Itrid_64 |          0  (omitted)
+   _Itrid_65 |          0  (omitted)
+   _Itrid_66 |  -.1915293     .33363    -0.57   0.566    -.8483227    .4652641
+   _Itrid_67 |          0  (omitted)
+   _Itrid_68 |          0  (omitted)
+   _Itrid_69 |   .1630489   .4915748     0.33   0.740    -.8046788    1.130777
+   _Itrid_70 |   .2470688   .1126687     2.19   0.029     .0252661    .4688716
+   _Itrid_71 |  -.0975938   .2267896    -0.43   0.667    -.5440582    .3488706
+   _Itrid_72 |  -.1437081   .2932243    -0.49   0.624    -.7209576    .4335415
+   _Itrid_73 |          0  (omitted)
+   _Itrid_74 |   .1407221   .1635061     0.86   0.390    -.1811606    .4626049
+   _Itrid_75 |  -.8149953   .6310301    -1.29   0.198    -2.057259    .4272682
+   _Itrid_76 |  -.9825626    .196665    -5.00   0.000    -1.369723   -.5954024
+   _Itrid_77 |  -.3086411     .30312    -1.02   0.309    -.9053717    .2880894
+   _Itrid_78 |   .0526307   .1707523     0.31   0.758    -.2835169    .3887784
+   _Itrid_79 |  -1.088438   .0503676   -21.61   0.000    -1.187593   -.9892826
+   _Itrid_80 |          0  (omitted)
+   _Itrid_81 |          0  (omitted)
+   _Itrid_82 |  -.7001191   .5455171    -1.28   0.200    -1.774039    .3738011
+   _Itrid_83 |  -.3118719   .3527187    -0.88   0.377    -1.006244    .3824999
+   _Itrid_84 |          0  (omitted)
+   _Itrid_85 |          0  (omitted)
+   _Itrid_86 |          0  (omitted)
+   _Itrid_87 |   1.685067   1.060887     1.59   0.113    -.4034245    3.773558
+   _Itrid_88 |  -.3654452   .2019741    -1.81   0.071    -.7630571    .0321667
+   _Itrid_89 |  -.0430081   .2496055    -0.17   0.863    -.5343884    .4483722
+   _Itrid_90 |  -.9528644   .7586642    -1.26   0.210    -2.446392    .5406631
+   _Itrid_91 |   .0703573   .3493945     0.20   0.841    -.6174705    .7581852
+   _Itrid_92 |   .9186107   .3022529     3.04   0.003     .3235874    1.513634
+   _Itrid_93 |          0  (omitted)
+   _Itrid_94 |   .5136395   .1924274     2.67   0.008     .1348215    .8924575
+   _Itrid_95 |   -.090006   .2216276    -0.41   0.685    -.5263082    .3462962
+   _Itrid_96 |  -.2866783    .336261    -0.85   0.395    -.9486511    .3752945
+   _Itrid_97 |          0  (omitted)
+   _Itrid_98 |          0  (omitted)
+   _Itrid_99 |          0  (omitted)
+  _Itrid_100 |   .0218638   .1394594     0.16   0.876    -.2526798    .2964074
+  _Itrid_101 |  -.7130933   .5492305    -1.30   0.195    -1.794324    .3681373
+  _Itrid_102 |   .2405972   .9575095     0.25   0.802    -1.644383    2.125577
+  _Itrid_103 |  -.0546952   .0386214    -1.42   0.158    -.1307263     .021336
+  _Itrid_104 |          0  (omitted)
+  _Itrid_105 |   2.864674   1.104648     2.59   0.010     .6900328    5.039314
+  _Itrid_106 |  -.7165307   .7940898    -0.90   0.368    -2.279798    .8467366
+  _Itrid_107 |  -.7191618   .6417376    -1.12   0.263    -1.982504    .5441807
+  _Itrid_108 |  -.5459516   .7729715    -0.71   0.481    -2.067645    .9757417
+  _Itrid_109 |  -.2489721    .330607    -0.75   0.452    -.8998142      .40187
+  _Itrid_110 |   1.822136   .8329804     2.19   0.030      .182308    3.461965
+  _Itrid_111 |  -.1567972   .1290873    -1.21   0.226    -.4109221    .0973276
+  _Itrid_112 |    -.40034   .2013717    -1.99   0.048    -.7967658   -.0039141
+  _Itrid_113 |   .1180374   .2282275     0.52   0.605    -.3312577    .5673324
+  _Itrid_114 |   .1343127   .2111061     0.64   0.525    -.2812766    .5499021
+  _Itrid_115 |   .2921459   .1904209     1.53   0.126    -.0827221    .6670139
+  _Itrid_116 |          0  (omitted)
+  _Itrid_117 |   .1454078   .1194219     1.22   0.224    -.0896895     .380505
+  _Itrid_118 |  -.8691187   .2369468    -3.67   0.000    -1.335579   -.4026586
+  _Itrid_119 |  -.3729412   .1678408    -2.22   0.027    -.7033573   -.0425252
+  _Itrid_120 |  -.3123138   .2070157    -1.51   0.133    -.7198507     .095223
+  _Itrid_121 |   .2668449   .1923406     1.39   0.166    -.1118022     .645492
+  _Itrid_122 |  -.2125137   .1079132    -1.97   0.050    -.4249545   -.0000728
+  _Itrid_123 |  -.2116248   .2257623    -0.94   0.349    -.6560666    .2328171
+  _Itrid_124 |   .0734581   .1639609     0.45   0.654    -.2493199    .3962361
+  _Itrid_125 |  -.2036336   .1901092    -1.07   0.285    -.5778879    .1706207
+  _Itrid_126 |   .1880433   .2329952     0.81   0.420    -.2706375    .6467242
+  _Itrid_127 |   .0038457   .1351097     0.03   0.977    -.2621351    .2698265
+  _Itrid_128 |   .1883706   .1488417     1.27   0.207    -.1046432    .4813844
+  _Itrid_129 |  -.8825943   .3251404    -2.71   0.007    -1.522675   -.2425139
+  _Itrid_130 |  -.2291987   .2134701    -1.07   0.284    -.6494418    .1910444
+  _Itrid_131 |  -.4525689   .1791725    -2.53   0.012    -.8052928   -.0998449
+  _Itrid_132 |  -.1719663   .1452876    -1.18   0.238    -.4579837     .114051
+  _Itrid_133 |   .1436611   .2160491     0.66   0.507    -.2816592    .5689815
+  _Itrid_134 |          0  (omitted)
+  _Itrid_135 |   .2804031   .1040359     2.70   0.007     .0755953     .485211
+  _Itrid_136 |  -.3866256   .2706517    -1.43   0.154    -.9194381    .1461869
+  _Itrid_137 |  -.3684999   .1790239    -2.06   0.040    -.7209313   -.0160684
+  _Itrid_138 |    .354223   .2259823     1.57   0.118    -.0906521    .7990981
+  _Itrid_139 |  -.3955122   .1488882    -2.66   0.008    -.6886176   -.1024067
+  _Itrid_140 |  -.0137198   .0935035    -0.15   0.883    -.1977935    .1703538
+  _Itrid_141 |          0  (omitted)
+  _Itrid_142 |          0  (omitted)
+  _Itrid_143 |          0  (omitted)
+  _Itrid_144 |   .6286606   .3100252     2.03   0.044     .0183364    1.238985
+  _Itrid_145 |   .3049227   .2179886     1.40   0.163    -.1242158    .7340612
+  _Itrid_146 |   .2616975   .2582764     1.01   0.312    -.2467527    .7701476
+  _Itrid_147 |   .0861865   .1822158     0.47   0.637    -.2725285    .4449016
+  _Itrid_148 |   .3434127   .1725656     1.99   0.048     .0036952    .6831301
+  _Itrid_149 |  -.1562498   .1635834    -0.96   0.340    -.4782847     .165785
+  _Itrid_150 |   .5969329   .1860429     3.21   0.001     .2306836    .9631821
+  _Itrid_151 |   .0034961   .2208934     0.02   0.987    -.4313608    .4383531
+  _Itrid_152 |  -.2206373   .1164179    -1.90   0.059    -.4498207    .0085461
+  _Itrid_153 |   .0968731   .2266191     0.43   0.669    -.3492556    .5430017
+  _Itrid_154 |  -.2323399   .2335564    -0.99   0.321    -.6921257    .2274458
+  _Itrid_155 |  -.1133897   .1730147    -0.66   0.513    -.4539912    .2272118
+  _Itrid_156 |          0  (omitted)
+  _Itrid_157 |  -.6929306   .1942557    -3.57   0.000    -1.075348   -.3105135
+  _Itrid_158 |     .64483    .231441     2.79   0.006     .1892088    1.100451
+  _Itrid_159 |   .2619065    .199975     1.31   0.191    -.1317697    .6555828
+  _Itrid_160 |  -.5319079   .1985785    -2.68   0.008    -.9228352   -.1409807
+  _Itrid_161 |  -.7004874   .3210076    -2.18   0.030    -1.332432    -.068543
+  _Itrid_162 |  -.3701962   .1992134    -1.86   0.064    -.7623734    .0219809
+  _Itrid_163 |   -.180817   .1775477    -1.02   0.309    -.5303424    .1687084
+  _Itrid_164 |  -.0665104   .2209234    -0.30   0.764    -.5014263    .3684055
+  _Itrid_165 |  -.7735549   .3376291    -2.29   0.023    -1.438221    -.108889
+  _Itrid_166 |  -.2601688   .1574072    -1.65   0.100     -.570045    .0497074
+  _Itrid_167 |   .1575346   .1663641     0.95   0.345    -.1699744    .4850437
+  _Itrid_168 |          0  (omitted)
+  _Itrid_169 |          0  (omitted)
+  _Itrid_170 |   .3211665   .1505463     2.13   0.034     .0247969     .617536
+  _Itrid_171 |  -.2629609   .2689963    -0.98   0.329    -.7925145    .2665927
+  _Itrid_172 |  -.3909282   .1642939    -2.38   0.018    -.7143618   -.0674947
+  _Itrid_173 |  -.1009316   .1905949    -0.53   0.597     -.476142    .2742788
+  _Itrid_174 |   .0363547   .1279994     0.28   0.777    -.2156284    .2883378
+  _Itrid_175 |   .5048396   .1789289     2.82   0.005     .1525953    .8570839
+  _Itrid_176 |   -.002918   .1316875    -0.02   0.982    -.2621616    .2563256
+  _Itrid_177 |          0  (omitted)
+  _Itrid_178 |   .4012129   .2490513     1.61   0.108    -.0890764    .8915023
+  _Itrid_179 |  -.2804161   .1631714    -1.72   0.087      -.60164    .0408077
+  _Itrid_180 |          0  (omitted)
+  _Itrid_181 |   .0144614   .1580278     0.09   0.927    -.2966365    .3255593
+  _Itrid_182 |  -.4771727   .2909589    -1.64   0.102    -1.049963    .0956171
+  _Itrid_183 |   .1687458   .0884917     1.91   0.058    -.0054614    .3429529
+  _Itrid_184 |    .073452   .2217046     0.33   0.741    -.3630018    .5099058
+  _Itrid_185 |   .1807182   .1731697     1.04   0.298    -.1601885     .521625
+  _Itrid_186 |  -.0633193   .1710911    -0.37   0.712     -.400134    .2734954
+  _Itrid_187 |  -.1214212   .1608336    -0.75   0.451    -.4380427    .1952003
+  _Itrid_188 |          0  (omitted)
+  _Itrid_189 |  -.1616324   .1460906    -1.11   0.270    -.4492304    .1259656
+  _Itrid_190 |  -.0810235   .1251457    -0.65   0.518    -.3273889    .1653419
+  _Itrid_191 |   .1795624   .1913125     0.94   0.349    -.1970607    .5561855
+  _Itrid_192 |  -.0204431   .1490112    -0.14   0.891    -.3137907    .2729045
+  _Itrid_193 |  -.7676756   .2348967    -3.27   0.001      -1.2301   -.3052515
+  _Itrid_194 |  -.1736506   .1697644    -1.02   0.307    -.5078536    .1605523
+  _Itrid_195 |          0  (omitted)
+  _Itrid_196 |  -.2408478   .2409893    -1.00   0.318    -.7152661    .2335705
+  _Itrid_197 |  -.2868861   .2656415    -1.08   0.281    -.8098353    .2360632
+  _Itrid_198 |   .1015733   .1207385     0.84   0.401     -.136116    .3392625
+  _Itrid_199 |   .0844381   .1162771     0.73   0.468    -.1444682    .3133444
+  _Itrid_200 |  -.2927258   .2772215    -1.06   0.292    -.8384718    .2530202
+  _Itrid_201 |          0  (omitted)
+  _Itrid_202 |          0  (omitted)
+  _Itrid_203 |   .1134957   .1048736     1.08   0.280    -.0929614    .3199528
+  _Itrid_204 |  -.5269302   .4649247    -1.13   0.258    -1.442194    .3883335
+  _Itrid_205 |  -.1120569   .4250071    -0.26   0.792    -.9487377    .7246239
+  _Itrid_206 |   .2394403   .2153628     1.11   0.267    -.1845289    .6634094
+  _Itrid_207 |  -.6930802    .794037    -0.87   0.384    -2.256244    .8700832
+  _Itrid_208 |          0  (omitted)
+  _Itrid_209 |          0  (omitted)
+  _Itrid_210 |   .1492204    .174014     0.86   0.392    -.1933485    .4917892
+  _Itrid_211 |          0  (omitted)
+  _Itrid_212 |          0  (omitted)
+  _Itrid_213 |  -.7186809    .981084    -0.73   0.464     -2.65007    1.212708
+  _Itrid_214 |  -.4597619    .249067    -1.85   0.066    -.9500821    .0305583
+  _Itrid_215 |  -.1872573   .1253438    -1.49   0.136    -.4340127     .059498
+  _Itrid_216 |  -.0290554   .1206841    -0.24   0.810    -.2666375    .2085266
+  _Itrid_217 |  -.4305475   .3038648    -1.42   0.158    -1.028744    .1676493
+  _Itrid_218 |  -.0265621   .1413339    -0.19   0.851    -.3047959    .2516717
+  _Itrid_219 |  -.7515299   .3547869    -2.12   0.035    -1.449973   -.0530866
+  _Itrid_220 |  -.2664776   .4330837    -0.62   0.539    -1.119058     .586103
+  _Itrid_221 |          0  (omitted)
+  _Itrid_222 |  -.4214017   .1672004    -2.52   0.012     -.750557   -.0922464
+  _Itrid_223 |  -.2592029   .1684491    -1.54   0.125    -.5908164    .0724107
+  _Itrid_224 |   .4041682   .1943046     2.08   0.038     .0216548    .7866816
+  _Itrid_225 |          0  (omitted)
+  _Itrid_226 |  -.1957491   .1005676    -1.95   0.053    -.3937293    .0022311
+  _Itrid_227 |          0  (omitted)
+  _Itrid_228 |   .0459276   .0844165     0.54   0.587     -.120257    .2121122
+  _Itrid_229 |   .2855179   .9770166     0.29   0.770    -1.637864      2.2089
+  _Itrid_230 |  -.3690925   .4737403    -0.78   0.437    -1.301711     .563526
+  _Itrid_231 |  -.3922138   .1589297    -2.47   0.014    -.7050873   -.0793403
+  _Itrid_232 |     .61683    .321393     1.92   0.056    -.0158732    1.249533
+  _Itrid_233 |    .389521    .199823     1.95   0.052    -.0038561    .7828981
+  _Itrid_234 |  -.6475471   .3437278    -1.88   0.061    -1.324219    .0291251
+  _Itrid_235 |   .1875764   .1972355     0.95   0.342    -.2007069    .5758598
+  _Itrid_236 |  -.4648297   .1934827    -2.40   0.017     -.845725   -.0839343
+  _Itrid_237 |  -.5810196   .2225964    -2.61   0.010    -1.019229   -.1428101
+  _Itrid_238 |   .2867102   .0539305     5.32   0.000     .1805411    .3928793
+  _Itrid_239 |  -.4021854   .1446798    -2.78   0.006    -.6870061   -.1173648
+  _Itrid_240 |   .2942993   .1541307     1.91   0.057    -.0091266    .5977252
+  _Itrid_241 |  -.0730142   .5721327    -0.13   0.899    -1.199331    1.053302
+  _Itrid_242 |  -.3887466   .2864724    -1.36   0.176    -.9527041     .175211
+  _Itrid_243 |          0  (omitted)
+  _Itrid_244 |          0  (omitted)
+  _Itrid_245 |          0  (omitted)
+  _Itrid_246 |  -.2190367   .1548955    -1.41   0.158    -.5239683    .0858949
+  _Itrid_247 |   .5088911   .1721949     2.96   0.003     .1699034    .8478788
+  _Itrid_248 |    1.00117   .1669026     6.00   0.000     .6726009    1.329739
+  _Itrid_249 |  -.5898955   .3348826    -1.76   0.079    -1.249155    .0693636
+  _Itrid_250 |  -.2835571     .21962    -1.29   0.198    -.7159072    .1487929
+  _Itrid_251 |     .01184   .1119763     0.11   0.916    -.2085996    .2322796
+  _Itrid_252 |   .3563463   .2323195     1.53   0.126    -.1010043    .8136968
+  _Itrid_253 |          0  (omitted)
+  _Itrid_254 |          0  (omitted)
+  _Itrid_255 |  -.2490867   .2078595    -1.20   0.232    -.6582846    .1601113
+  _Itrid_256 |   -.410918   .1543192    -2.66   0.008    -.7147151   -.1071209
+  _Itrid_257 |  -.5359798   .2729316    -1.96   0.051    -1.073281    .0013211
+  _Itrid_258 |   .0637651   .1564259     0.41   0.684    -.2441793    .3717095
+  _Itrid_259 |   .4663288   .2653802     1.76   0.080     -.056106    .9887636
+  _Itrid_260 |  -.3507803   .2427741    -1.44   0.150    -.8287121    .1271515
+  _Itrid_261 |          0  (omitted)
+  _Itrid_262 |   .5709178   .1367527     4.17   0.000     .3017025     .840133
+  _Itrid_263 |  -.4579974   .2121944    -2.16   0.032    -.8757293   -.0402655
+  _Itrid_264 |  -.6954308    .235641    -2.95   0.003     -1.15932   -.2315413
+  _Itrid_265 |  -.2623648   .1360022    -1.93   0.055    -.5301024    .0053729
+  _Itrid_266 |    .300492   .1191144     2.52   0.012     .0660001     .534984
+  _Itrid_267 |          0  (omitted)
+  _Itrid_268 |   .1546986   .1856884     0.83   0.406    -.2108527    .5202499
+  _Itrid_269 |  -.0344525    .151273    -0.23   0.820    -.3322527    .2633478
+  _Itrid_270 |   .2006952   .1426295     1.41   0.161    -.0800892    .4814796
+  _Itrid_271 |   .6732164   .8695815     0.77   0.439    -1.038666    2.385099
+  _Itrid_272 |  -.1861442   .1709378    -1.09   0.277    -.5226572    .1503688
+  _Itrid_273 |  -.1715587    .102773    -1.67   0.096    -.3738805    .0307632
+  _Itrid_274 |   .5065403   .2482529     2.04   0.042     .0178228    .9952578
+  _Itrid_275 |  -.2948377   .2384661    -1.24   0.217    -.7642887    .1746134
+  _Itrid_276 |   .1291128   .1873703     0.69   0.491    -.2397497    .4979753
+  _Itrid_277 |   .7252697   .2448816     2.96   0.003      .243189     1.20735
+  _Itrid_278 |          0  (omitted)
+  _Itrid_279 |          0  (omitted)
+  _Itrid_280 |   .3674104   .1790114     2.05   0.041     .0150035    .7198172
+  _Itrid_281 |          0  (omitted)
+  _Itrid_282 |  -.2180177   .3748597    -0.58   0.561     -.955977    .5199416
+  _Itrid_283 |  -.1812669   .1252763    -1.45   0.149    -.4278894    .0653556
+  _Itrid_284 |   .4639042   .2924639     1.59   0.114    -.1118484    1.039657
+  _Itrid_285 |          0  (omitted)
+  _Itrid_286 |   .1352094   .1937023     0.70   0.486    -.2461183    .5165371
+  _Itrid_287 |   .0845132    .117742     0.72   0.474    -.1472769    .3163033
+  _Itrid_288 |          0  (omitted)
+  _Itrid_289 |   .6435825   .2503592     2.57   0.011     .1507184    1.136446
+  _Itrid_290 |          0  (omitted)
+  _Itrid_291 |   .0832025   .1660592     0.50   0.617    -.2437063    .4101112
+  _Itrid_292 |    .147936   .1621875     0.91   0.362    -.1713509    .4672229
+  _Itrid_293 |          0  (omitted)
+  _Itrid_294 |   .0970031    .138513     0.70   0.484    -.1756775    .3696837
+  _Itrid_295 |  -.4601825   .1987896    -2.31   0.021    -.8515253   -.0688398
+  _Itrid_296 |  -.2575715   .1896172    -1.36   0.175    -.6308572    .1157142
+  _Itrid_297 |  -.0658812   .1691771    -0.39   0.697    -.3989278    .2671655
+  _Itrid_298 |  -.0131561   .0815197    -0.16   0.872    -.1736381    .1473259
+  _Itrid_299 |  -.1121111   .1139173    -0.98   0.326    -.3363719    .1121498
+  _Itrid_300 |   .4437324   .2131563     2.08   0.038     .0241069    .8633579
+  _Itrid_301 |   .0280968   .1011129     0.28   0.781    -.1709568    .2271505
+  _Itrid_302 |  -.1262029   .2082818    -0.61   0.545    -.5362323    .2838266
+  _Itrid_303 |  -.0557172   .1835869    -0.30   0.762    -.4171315     .305697
+  _Itrid_304 |          0  (omitted)
+  _Itrid_305 |   .4293246   .2743579     1.56   0.119     -.110784    .9694333
+  _Itrid_306 |          0  (omitted)
+  _Itrid_307 |          0  (omitted)
+       _cons |   9.018578   .2974342    30.32   0.000     8.433041    9.604116
+-------------+----------------------------------------------------------------
+postdirmonth |   absorbed                                    (1385 categories)
+(est1 stored)
+
+. 
+. 
+. ************** Extension 
+. use codedkabmerged,clear
+
+.         
+.         g ztruckovertons = max(ztruckweight - ztruckmaxweight,0)
+
+.         g ztruckoverweight = 1 if ztruckovertons > 0 & ztruckovertons != .
+(491 missing values generated)
+
+.         replace ztruckoverweight = 0 if ztruckovertons  == 0
+(491 real changes made)
+
+.         
+.         keep if ztotkabjembtotal >= 1 & ztotkabjembtotal != .
+(2,518 observations deleted)
+
+.         
+.         * drop isolated jemb's  / coding errors -- these are locations where
+>  there should be no weigh station
+.         drop if zpostkabid == "1105"
+(1 observation deleted)
+
+.         drop if zpostkabid == "1209"
+(2 observations deleted)
+
+.         drop if zpostkabid == "1212"
+(2 observations deleted)
+
+.         drop if zpostkabid == "1275"
+(1 observation deleted)
+
+.         drop if zpostkabid == "1273"
+(2 observations deleted)
+
+.         tab zpostkabid
+
+District ID |      Freq.     Percent        Cum.
+------------+-----------------------------------
+       1114 |        136       22.74       22.74
+       1210 |        161       26.92       49.67
+       1211 |        159       26.59       76.25
+       1213 |        142       23.75      100.00
+------------+-----------------------------------
+      Total |        598      100.00
+
+.         assert r(r) == 4 /*check only 4 weigh stations*/
+
+.         
+.         /*drop mel trucks that go on the aceh route, since these are also er
+> rors*/
+.         drop if zroute == "M" & (zpostkabid == "1114" | zpostkabid == "1213"
+> )
+(0 observations deleted)
+
+.         
+.         g paidjembasa = ztotkabjembpaid + zusedasaamt
+(39 missing values generated)
+
+.         g convoyasa = (zusedasa | ztruckconvoy) if ztruckconvoy != . & zused
+> asa != .
+
+.         
+.         ****************************
+.         * Table 7 
+.         ****************************
+.         drop if substr(trid,1,3) == "M03"
+(105 observations deleted)
+
+.         /**XXXsurveyor M03 did not record ASA informationXX*/
+.         g lnzdrivermonthly = ln(zdrivermonthlysalary)
+(71 missing values generated)
+
+.         
+. 
+. 
+. ************ re-run the table 7 regression using dummy  
+.         gen ztruckovertons_dummy = 0 if zpostkabid == "1213" & zroutetoaceh 
+> == 1
+(433 missing values generated)
+
+.         replace ztruckovertons_dummy = 1 if zpostkabid == "1213" & zroutetoa
+> ceh == 1 & ztruckovertons > 16 & ztruckovertons < 30 
+(25 real changes made)
+
+.     eststo:reg zusedasa ztruckovertons_dummy zdriveryearsexp, robust        
+>     
+
+Linear regression                               Number of obs     =         60
+                                                F(2, 57)          =       6.03
+                                                Prob > F          =     0.0042
+                                                R-squared         =     0.0979
+                                                Root MSE          =     .48696
+
+------------------------------------------------------------------------------
+             |               Robust
+    zusedasa |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ztruckover~y |   .2040857   .1276855     1.60   0.115    -.0516001    .4597714
+zdriveryea~p |  -.0103727   .0031536    -3.29   0.002    -.0166876   -.0040578
+       _cons |   .5759843   .0940784     6.12   0.000     .3875955     .764373
+------------------------------------------------------------------------------
+(est2 stored)
+
+.         outreg using table7extension2, se coefastr 3aster replace title("Geb
+> ang")/**we shows that there is still no significant**/      
+(note: file table7extension2.out not found)
+
+. 
+end of do-file
+
+. esttab, drop(_Itrid*) 
+
+--------------------------------------------
+                      (1)             (2)   
+                lnpayment        zusedasa   
+--------------------------------------------
+zpostgun            0.164*                  
+                   (2.54)                   
+
+zpostnumppl        0.0455***                
+                   (4.31)                   
+
+zdriveredy~s      -0.0566**                 
+                  (-3.11)                   
+
+zdriveryea~p      -0.0112         -0.0104** 
+                  (-1.41)         (-3.29)   
+
+ztruckover~y                        0.204   
+                                   (1.60)   
+
+_cons               9.019***        0.576***
+                  (30.32)          (6.12)   
+--------------------------------------------
+N                    5120              60   
+--------------------------------------------
+t statistics in parentheses
+* p<0.05, ** p<0.01, *** p<0.001
+
+. label variable zdriveryearsexp "Driver's experience"
+
+. label variable ztruckovertons_dummy "Over Weight Dummy"
+
+. do "/var/folders/cz/22lkzq6s76d4j39wmlsf9r3c0000gn/T//SD12361.000000"
+
+.         esttab using extension4.tex, label title(Regression table for bargai
+> ning and price discrimination  \label{tab1}) nonumbers mtitles("Bargaining" 
+> "Price Discrimination") drop(_Itrid*) replace 
+(note: file extension4.tex not found)
+(output written to extension4.tex)
+
+. 
+end of do-file
+

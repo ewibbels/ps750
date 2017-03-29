@@ -1,0 +1,11 @@
+ln payments				
+	(1)	(2)	(3)	(4)
+	OLS			
+lnmeantotkabposts	0.663***	1.522***	0.586***	0.786**
+	(0.081)	(0.390)	(0.082)	(0.359)
+Observations	1090	1026	1435	1363
+Test elas = 1	0.00	0.18	0.00	0.55
+Test elas = 0	0.00	0.00	0.00	0.03
+Standard errors in parentheses				
+* significant at 10%; ** significant at 5%; *** significant at 1%				
+First stage F		1.80		4.55
